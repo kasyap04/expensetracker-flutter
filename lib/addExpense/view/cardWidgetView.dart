@@ -6,11 +6,22 @@ class CardWidget extends StatelessWidget {
   final String expense;
   final String cardType;
 
+  // final void Function() todaySelected;
+  // final void Function() thisWeekSelected;
+  // final void Function() thisMonthSelelcted;
+
+  final void Function(String value) itemSelected;
+
   CardWidget(
       {required this.menuPressed,
       required this.expenseTime,
       required this.expense,
-      required this.cardType});
+      required this.cardType,
+      required this.itemSelected(String value)
+      // required this.todaySelected,
+      // required this.thisWeekSelected,
+      // required this.thisMonthSelelcted
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -32,20 +43,47 @@ class CardWidget extends StatelessWidget {
                 style:
                     const TextStyle(color: Color.fromARGB(255, 170, 170, 170)),
               ),
-              IconButton(
-                  onPressed: () {},
+              PopupMenuButton(
+                  iconSize: 20,
                   icon: const Icon(
                     Icons.more_vert,
-                    size: 20,
                     color: Color.fromARGB(255, 170, 170, 170),
-                  ))
+                  ),
+                  onSelected: (choice) {
+                    itemSelected(choice.toString());
+                  },
+                  itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: "Today",
+                          child: Text("Today"),
+                        ),
+                        const PopupMenuItem(
+                          value: "This week",
+                          child: Text("This week"),
+                        ),
+                        const PopupMenuItem(
+                          value: "This month",
+                          child: Text("This month"),
+                        ),
+                      ])
             ],
           ),
           const Padding(padding: EdgeInsets.only(bottom: 15)),
-          Text(
-            expense,
-            style: const TextStyle(
-                fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.currency_rupee,
+                color: Color.fromARGB(146, 216, 216, 216),
+              ),
+              Text(
+                expense,
+                style: const TextStyle(
+                    fontSize: 40,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
+              )
+            ],
           ),
           const Padding(padding: EdgeInsets.only(bottom: 30)),
           Row(
