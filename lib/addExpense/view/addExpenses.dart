@@ -108,6 +108,7 @@ class AddExpensesState extends State<AddExpenses> {
       home: Scaffold(
         appBar: AppBarView(
           hasBackButton: true,
+          prevContext: context,
         ),
         body: Center(
           child: ListView(

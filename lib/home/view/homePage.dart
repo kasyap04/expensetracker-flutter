@@ -21,37 +21,9 @@ class HomePageState extends State<HomePage> {
             iconClicked: () {},
           ),
           body: ListView(
-            padding: const EdgeInsets.only(left: 10, right: 10),
+            // padding: const EdgeInsets.only(left: 10, right: 10),
             children: [CardView()],
           )),
     );
   }
 }
-
-// class ButtonAddExpenses extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.end,
-//       mainAxisSize: MainAxisSize.min,
-//       children: [
-//         SizedBox(
-//           width: 140,
-//           child: ElevatedButton.icon(
-//               onPressed: () {
-//                 Navigator.push(context,
-//                     MaterialPageRoute(builder: (context) => AddExpenses()));
-//               },
-//               icon: const Icon(
-//                 Icons.add,
-//                 size: 30,
-//               ),
-//               label: const Text("Add expense", style: TextStyle(fontSize: 17)),
-//               style: ElevatedButton.styleFrom(
-//                   padding: const EdgeInsets.all(5),
-//                   primary: const Color.fromARGB(255, 121, 52, 134))),
-//         ),
-//       ],
-//     );
-//   }
-// }

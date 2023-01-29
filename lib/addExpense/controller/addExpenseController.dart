@@ -38,9 +38,10 @@ Future<bool> saveCardExpense(
   }
 }
 
+DateTime toDateTime(String date) => DateTime.parse(date);
+
 Future<String> getCardDetailsByTime(String time, String cartType) async {
   double expenseSum = 0;
-  print("$time $cartType");
   var card = await getFullCardDetails();
 
   if (time == "Today") {
@@ -54,23 +55,31 @@ Future<String> getCardDetailsByTime(String time, String cartType) async {
     }
   } else if (time == "This week" || time == "This month") {
     var date = DateTime.now();
+    var start_date, end_date;
     if (time == "This week") {
-      var start_date = date.subtract(Duration(days: date.weekday));
-      var end_date =
-          date.add(Duration(days: DateTime.daysPerWeek - date.weekday - 1));
-      print(start_date);
-      print(end_date);
+      var weekday = date.weekday == 7 ? 0 : date.weekday;
+      start_date = date.subtract(Duration(days: weekday));
+      end_date = date.add(Duration(days: DateTime.daysPerWeek - weekday - 1));
+      start_date = DateTime(start_date.year, start_date.month, start_date.day);
+      end_date = DateTime(end_date.year, end_date.month, end_date.day);
     } else if (time == "This month") {
-      var start_date = DateTime(date.year, date.month, 1);
-      var end_date = DateTime(date.year, date.month + 1, 0);
-      print(start_date);
-      print(end_date);
+      start_date = DateTime(date.year, date.month, 1);
+      end_date = DateTime(date.year, date.month + 1, 0);
     }
 
-    print(card[cartType]);
+    card[cartType].keys.forEach((key) {
+      DateTime datetime = toDateTime(key);
+      if ((datetime.isAfter(start_date) ||
+              datetime.isAtSameMomentAs(start_date)) &&
+          (datetime.isBefore(end_date) ||
+              datetime.isAtSameMomentAs(end_date))) {
+        for (var expense in card[cartType][key]) {
+          expenseSum += expense['amount'];
+        }
+      }
+    });
   }
 
-  // print(expenseSum);
   if (expenseSum == 0) {
     return "0";
   }

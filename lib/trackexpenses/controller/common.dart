@@ -21,13 +21,17 @@ Future<bool> setCards(bool debit, bool credit) async {
   try {
     if (credit || debit) {
       var pref = await SharedPreferences.getInstance();
-      Map<String, Map<String, String>> cards = {};
+      Map<String, dynamic> cards = {};
+      cards['cards'] = [];
+
       if (debit) {
         cards['debit'] = {};
+        cards['cards'].add('debit');
       }
 
       if (credit) {
         cards['credit'] = {};
+        cards['cards'].add('credit');
       }
       pref.setString('expenses', json.encode(cards));
     }

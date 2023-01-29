@@ -4,10 +4,12 @@ class AppBarView extends StatelessWidget implements PreferredSizeWidget {
   late IconData? icon;
   late void Function()? iconClicked;
   late bool? hasBackButton;
-  AppBarView({this.icon, this.iconClicked, this.hasBackButton});
+  late BuildContext? prevContext;
+  AppBarView(
+      {this.icon, this.iconClicked, this.hasBackButton, this.prevContext});
 
-  void goBack(BuildContext context) {
-    Navigator.of(context).pop();
+  void goBack() {
+    Navigator.of(prevContext!).pop();
   }
 
   @override
@@ -19,7 +21,7 @@ class AppBarView extends StatelessWidget implements PreferredSizeWidget {
       leading: hasBackButton == true
           ? IconButton(
               onPressed: () {
-                goBack(context);
+                goBack();
               },
               icon: const Icon(Icons.arrow_back, color: Colors.black))
           : null,
