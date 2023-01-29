@@ -5,8 +5,9 @@ import 'dart:convert';
 
 const String FLAG = "expenses";
 
-Future<void> setCard() async {
+Future<dynamic> getCards() async {
   var pref = await SharedPreferences.getInstance();
   var data = jsonDecode(pref.getString(FLAG).toString());
-  print(data);
+  return data['cards'];
+  // return ['debit'];
 }

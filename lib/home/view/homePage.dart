@@ -3,6 +3,7 @@ import 'package:trackexpense/addExpense/view/addExpenses.dart';
 // import 'package:trackexpense/trackexpenses/controller/common.dart';
 import 'cardView.dart';
 import '../../trackexpenses/view/appBarView.dart';
+import 'expenseHostoryView.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -22,7 +23,11 @@ class HomePageState extends State<HomePage> {
           ),
           body: ListView(
             // padding: const EdgeInsets.only(left: 10, right: 10),
-            children: [CardView()],
+            children: [
+              const CardView(),
+              const Padding(padding: EdgeInsets.only(bottom: 20, top: 20)),
+              ExpenseHistoryHome()
+            ],
           )),
     );
   }
