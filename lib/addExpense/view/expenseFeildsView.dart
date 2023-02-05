@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:searchfield/searchfield.dart';
+
+import '../../settings/model/settingsMode.dart';
 
 class ExpenseFeild extends StatelessWidget {
   final formKey;
   final expenseController;
   final tagController;
-  final descriptionController;
+  final categoryController;
 
   ExpenseFeild(
       {required this.formKey,
       required this.expenseController,
       required this.tagController,
-      required this.descriptionController});
+      required this.categoryController});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -27,21 +30,94 @@ class ExpenseFeild extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               FeildLabel(
-                label: "Expense",
+                label: "Amount",
               ),
               FeildPadding(padding: 5),
               ExpenseView(controller: expenseController),
               FeildPadding(padding: 30),
-              FeildLabel(label: "Tag"),
+              FeildLabel(label: "Category"),
+              FeildPadding(padding: 5),
+              Category(controller: categoryController),
+              FeildPadding(padding: 30),
+              FeildLabel(label: "Spend for"),
               FeildPadding(padding: 5),
               TagView(controller: tagController),
-              FeildPadding(padding: 30),
-              FeildLabel(label: "Description (Optional)"),
-              FeildPadding(padding: 5),
-              DescriptionView(controller: descriptionController),
             ],
           )),
     );
+  }
+}
+
+class Category extends StatefulWidget {
+  final controller;
+  Category({required this.controller});
+  @override
+  State<Category> createState() => CategoryState();
+}
+
+class CategoryState extends State<Category> {
+  final categories = <SearchFieldListItem>[];
+  @override
+  Widget build(BuildContext context) {
+    dynamic addCategory = InkWell(
+        onTap: () async {
+          String name = widget.controller.text;
+          if (name.isNotEmpty) {
+            try {
+              var categoryId = await addNewCategory(name);
+              setState(() {});
+            } catch (e) {}
+          }
+        },
+        child: const Text(
+          "Add new",
+          style: TextStyle(fontSize: 12),
+        ));
+
+    return FutureBuilder(
+        future: getCategories(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            categories.clear();
+            dynamic categoryDb = snapshot.data;
+            for (var cat in categoryDb) {
+              categories.add(SearchFieldListItem(cat['name'],
+                  child: Row(children: [
+                    const Padding(
+                        padding:
+                            EdgeInsets.only(right: 10, top: 20, bottom: 20)),
+                    Text(
+                      cat['name'],
+                      style: const TextStyle(fontSize: 20),
+                    )
+                  ])));
+            }
+
+            return SearchField(
+              controller: widget.controller,
+              suggestions: categories,
+              suggestionState: Suggestion.expand,
+              searchStyle: const TextStyle(fontSize: 18),
+              searchInputDecoration: InputDecoration(
+                  suffix: addCategory,
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(6)),
+                  border: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(6))),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please choose category';
+                } else {
+                  return null;
+                }
+              },
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        });
   }
 }
 
@@ -66,7 +142,7 @@ class ExpenseView extends StatelessWidget {
       keyboardType: TextInputType.number,
       validator: (value) => expendeValidator(value),
       textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(fontSize: 23),
+      style: const TextStyle(fontSize: 18),
       decoration: InputDecoration(
           prefix: const Icon(
             Icons.currency_rupee,
@@ -93,35 +169,13 @@ class TagView extends StatelessWidget {
       controller: controller,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Enter your expense';
+          return 'Please fill this field';
         } else {
           return null;
         }
       },
       textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(fontSize: 23),
-      decoration: InputDecoration(
-          focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(6)),
-          border: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
-              borderRadius: BorderRadius.circular(6))),
-    );
-  }
-}
-
-class DescriptionView extends StatelessWidget {
-  final controller;
-  DescriptionView({required this.controller});
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      autocorrect: true,
-      maxLines: 2,
-      textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(fontSize: 23),
+      style: const TextStyle(fontSize: 18),
       decoration: InputDecoration(
           focusedBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.grey),

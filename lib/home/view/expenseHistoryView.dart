@@ -1,136 +1,159 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../expenseDetail/controller/cardExpenseController.dart';
+import '../model/homeModel.dart';
 
 class ExpenseHistoryHome extends StatefulWidget {
+  final void Function(Map cardType) editExpense;
+  final Future<bool> Function(int id) deleteExpenseAction;
+  ExpenseHistoryHome(
+      {required this.editExpense, required this.deleteExpenseAction});
   @override
   State<ExpenseHistoryHome> createState() => ExpenseHistoryHomeState();
 }
 
 class ExpenseHistoryHomeState extends State<ExpenseHistoryHome> {
-  // List<Widget> myExpenses = [];
-  // @override
-  // void initState() {
-  //   setState(() {
-  //     getCardExpense().then((value) {
-  //       dynamic allExpenses = value;
-  //       // print(allExpenses) ;
-  //       String lastDate = "";
+  Future<bool> expenseDismiss(
+      BuildContext context, DismissDirection direction, Map expData) async {
+    bool status = false;
+    if (direction == DismissDirection.endToStart) {
+      // status = false;
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, false);
+                      },
+                      child: const Text("Not now")),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, true);
+                        // await widget.deleteExpenseAction(expData['id']);
+                      },
+                      child: const Text("Yes, delete"))
+                ],
+                title: const Text("Delete?", textAlign: TextAlign.center),
+                content: const Text(
+                  "Are you sure you want to deletye this?",
+                  textAlign: TextAlign.center,
+                ),
+              )).then((value) async {
+        status = value;
+        if (value) {
+          status = await widget.deleteExpenseAction(expData['id']);
+        }
+      });
 
-  //       for (var exp in allExpenses) {
-  //         String time = exp['time'].substring(11, exp['time'].length);
-  //         String date = exp['time'].substring(0, 11);
-
-  //         if (lastDate != date) {
-  //           lastDate = date;
-  //           myExpenses.add(DateChange(
-  //             date: lastDate,
-  //           ));
-  //         }
-
-  //         myExpenses.add(ExpenseHistoryChild(
-  //           amount: "${exp['amount']}",
-  //           cardType: exp['card'],
-  //           tag: exp['tag'],
-  //           time: "$date $time",
-  //         ));
-
-  //         myExpenses.add(D());
-  //       }
-  //       myExpenses.removeLast();
-  //     });
-  //   });
-  // }
+      print("status = $status");
+    } else {
+      widget.editExpense(expData);
+      status = true;
+    }
+    return status;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // return Column(
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   children: [
-    //     Row(
-    //       children: const [
-    //         Padding(padding: EdgeInsets.only(left: 10)),
-    //         Text(
-    //           "Expense history",
-    //           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-    //         )
-    //       ],
-    //     ),
-    //     Container(
-    //       decoration: BoxDecoration(
-    //           color: const Color.fromARGB(28, 15, 103, 138),
-    //           borderRadius: BorderRadius.circular(10)),
-    //       width: MediaQuery.of(context).size.width - 20,
-    //       margin: const EdgeInsets.only(left: 10),
-    //       padding: const EdgeInsets.all(10),
-    //       child: Column(
-    //         crossAxisAlignment: CrossAxisAlignment.start,
-    //         children: myExpenses,
-    //       ),
-    //     ),
-    //   ],
-    // );
-
+    // return const Center(child: Text("ON THE WAY"));
     return FutureBuilder(
-        future: getCardExpense(),
+        future: getAllExpenses(),
         builder: ((context, snapshot) {
           if (snapshot.hasData) {
             List<Widget> myExpenses = [];
 
             dynamic allExpenses = snapshot.data;
-            // print(allExpenses) ;
-            String lastDate = "";
 
-            for (var exp in allExpenses) {
-              String time = exp['time'].substring(11, exp['time'].length);
-              String date = exp['time'].substring(0, 11);
+            if (allExpenses.isNotEmpty) {
+// print(allExpenses) ;
+              String lastDate = "";
 
-              if (lastDate != date) {
-                lastDate = date;
+              for (var exp in allExpenses) {
+                String time = exp['date'].substring(11, exp['date'].length);
+                String date = exp['date'].substring(0, 11);
 
-                myExpenses.add(DateChange(
-                  date: lastDate,
-                ));
+                print(DateFormat("HH:mm:ss").parse(time));
+
+                if (lastDate != date) {
+                  lastDate = date;
+
+                  myExpenses.add(DateChange(
+                    date: lastDate,
+                  ));
+                }
+
+                myExpenses.add(Dismissible(
+                    confirmDismiss: (direction) async =>
+                        await expenseDismiss(context, direction, exp),
+                    resizeDuration: const Duration(seconds: 5),
+                    secondaryBackground: const ColoredBox(
+                        color: Colors.red,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: EdgeInsets.all(15),
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )),
+                    background: const ColoredBox(
+                        color: Colors.blue,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: EdgeInsets.all(15),
+                            child: Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )),
+                    key: UniqueKey(),
+                    child: ExpenseHistoryChild(
+                      amount: "${exp['amount']}",
+                      cardType: exp['card'],
+                      tag: exp['spend'],
+                      time: time,
+                    )));
+
+                // myExpenses.add(D());
               }
+              // myExpenses.removeLast();
 
-              myExpenses.add(ExpenseHistoryChild(
-                amount: "${exp['amount']}",
-                cardType: exp['card'],
-                tag: exp['tag'],
-                time: time,
-              ));
-
-              myExpenses.add(D());
-            }
-            myExpenses.removeLast();
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Padding(padding: EdgeInsets.only(left: 10)),
-                    Text(
-                      "Expense history",
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                      color: const Color.fromARGB(28, 15, 103, 138),
-                      borderRadius: BorderRadius.circular(10)),
-                  width: MediaQuery.of(context).size.width - 20,
-                  margin: const EdgeInsets.only(left: 10),
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: myExpenses,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: const [
+                      Padding(padding: EdgeInsets.only(left: 10)),
+                      Text(
+                        "Expense history",
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
+                      )
+                    ],
                   ),
-                ),
-              ],
-            );
+                  Container(
+                    decoration: BoxDecoration(
+                        color: const Color.fromARGB(28, 15, 103, 138),
+                        borderRadius: BorderRadius.circular(10)),
+                    width: MediaQuery.of(context).size.width - 20,
+                    margin: const EdgeInsets.only(left: 10),
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: myExpenses,
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return Center(
+                  child: Text("You didn't make an expense yet",
+                      style: TextStyle(color: Colors.grey)));
+            }
           } else {
             return const CircularProgressIndicator();
           }

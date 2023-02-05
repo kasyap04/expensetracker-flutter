@@ -6,10 +6,6 @@ class CardWidget extends StatelessWidget {
   final String expense;
   final String cardType;
 
-  // final void Function() todaySelected;
-  // final void Function() thisWeekSelected;
-  // final void Function() thisMonthSelelcted;
-
   final void Function(String value) itemSelected;
 
   CardWidget(
@@ -17,11 +13,7 @@ class CardWidget extends StatelessWidget {
       required this.expenseTime,
       required this.expense,
       required this.cardType,
-      required this.itemSelected(String value)
-      // required this.todaySelected,
-      // required this.thisWeekSelected,
-      // required this.thisMonthSelelcted
-      });
+      required this.itemSelected(String value)});
 
   @override
   Widget build(BuildContext context) {

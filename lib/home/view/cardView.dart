@@ -2,41 +2,28 @@ import 'dart:convert';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:trackexpense/addExpense/view/addExpenses.dart';
-import 'package:carousel_slider/carousel_controller.dart';
+// import 'package:trackexpense/addExpense/view/addExpenses.dart';
+// import 'package:carousel_slider/carousel_controller.dart';
 import 'package:trackexpense/home/controller/homePageController.dart';
 
 import '../../addExpense/controller/addExpenseController.dart';
-import '../../expenseDetail/view/cardExpensesView.dart';
+// import '../../expenseDetail/view/cardExpensesView.dart';
 
 class CardView extends StatefulWidget {
-  const CardView({Key? key}) : super(key: key);
+  final void Function(String cardTyp) addExpensePressed;
+  final void Function(String cardtype) cardPressed;
+  CardView(
+      {required this.addExpensePressed(String cardType),
+      required this.cardPressed});
 
   @override
   State<CardView> createState() => CardViewState();
 }
 
 class CardViewState extends State<CardView> {
-  void addExpenseClicked(BuildContext context, String card) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => AddExpenses(
-                  cardType: card,
-                )));
-  }
-
-  void cardClicked(BuildContext context, String card) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => CardExpenses(
-                  cardType: card,
-                )));
-  }
-
   @override
   Widget build(BuildContext context) {
+    print("CARD VIEW HOME");
     return FutureBuilder(
         future: getCards(),
         builder: (context, snapshot) {
@@ -46,9 +33,11 @@ class CardViewState extends State<CardView> {
 
             for (var card in allCards) {
               items.add(ExpenseCard(
-                addExpenseClicked: (value) => addExpenseClicked(context, card),
-                cardClicked: () => cardClicked(context, card),
-                cardType: card,
+                expense: card['amount'].toString(),
+                addExpenseClicked: (value) =>
+                    widget.addExpensePressed(card['card']),
+                cardClicked: () => widget.cardPressed(card['card']),
+                cardType: card['card'],
               ));
             }
 
@@ -77,26 +66,17 @@ class ExpenseCard extends StatefulWidget {
   final String cardType;
   final void Function(String type) addExpenseClicked;
   final void Function() cardClicked;
+  final String expense;
   ExpenseCard(
       {required this.cardType,
       required this.addExpenseClicked(String type),
-      required this.cardClicked});
+      required this.cardClicked,
+      required this.expense});
   @override
   State<ExpenseCard> createState() => ExpenseCardState();
 }
 
 class ExpenseCardState extends State<ExpenseCard> {
-  String expense = "0";
-  @override
-  void initState() {
-    super.initState();
-    getCardDetailsByTime("Today", widget.cardType).then((value) {
-      setState(() {
-        expense = value;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     var mediaQuery = MediaQuery.of(context).size;
@@ -130,7 +110,7 @@ class ExpenseCardState extends State<ExpenseCard> {
                   color: Color.fromARGB(146, 216, 216, 216),
                 ),
                 Text(
-                  expense,
+                  widget.expense,
                   style: const TextStyle(
                       fontSize: 40,
                       color: Colors.white,

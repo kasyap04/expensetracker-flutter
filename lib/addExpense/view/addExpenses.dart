@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../controller/addExpenseController.dart';
+import '../model/addExpenseMode.dart';
 import 'cardWidgetView.dart';
 import '../../trackexpenses/view/appBarView.dart';
 import 'expenseFeildsView.dart';
 
 class AddExpenses extends StatefulWidget {
   final String cardType;
-  AddExpenses({required this.cardType});
+  late Map? editableExpense;
+  AddExpenses({required this.cardType, this.editableExpense});
   @override
   State<AddExpenses> createState() => AddExpensesState();
 }
@@ -18,15 +20,26 @@ class AddExpensesState extends State<AddExpenses> {
 
   TextEditingController expenseController = TextEditingController();
   TextEditingController tagController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  TextEditingController categoryController = TextEditingController();
 
   String totalExpense = "0";
   String expenseTime = "Today";
 
+  String saveBtnText = "Save expense";
+
   @override
   void initState() {
     super.initState();
-    getCardDetailsByTime(expenseTime, widget.cardType).then((value) {
+
+    if (widget.editableExpense != null) {
+      print(widget.editableExpense);
+      expenseController.text = widget.editableExpense!['amount'].toString();
+      tagController.text = widget.editableExpense!['spend'];
+      categoryController.text = widget.editableExpense!['category'];
+      saveBtnText = "Save changes";
+    }
+
+    getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
       setState(() {
         totalExpense = value;
       });
@@ -38,7 +51,7 @@ class AddExpensesState extends State<AddExpenses> {
       expenseTime = value;
     });
 
-    getCardDetailsByTime(expenseTime, widget.cardType).then((value) {
+    getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
       setState(() {
         totalExpense = value;
       });
@@ -64,34 +77,53 @@ class AddExpensesState extends State<AddExpenses> {
       if (formKey.currentState!.validate()) {
         double expense = double.parse(expenseController.text.trim());
         String tag = tagController.text.trim();
-        String description = descriptionController.text.trim();
+        String category = categoryController.text;
 
-        var today = DateTime.now();
-        var date = DateFormat("yyyy-MM-dd").format(today);
-        var time = DateFormat("hh:mm a").format(today);
+        var date;
+        if (widget.editableExpense != null) {
+          date = widget.editableExpense!['date'];
+        } else {
+          date = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+        }
+
+        int categoryId = await getCatgoryId(category);
+        int cardId = await getCardId(widget.cardType);
 
         Map<String, dynamic> expenseData = {
+          "name": tag,
           "amount": expense,
-          "tag": tag,
-          "desc": description,
+          'card': cardId,
+          'category': categoryId,
           "date": date,
-          "time": time
         };
-        bool cardSaveStatus =
-            await saveCardExpense(expenseData, widget.cardType);
 
-        expenseController.text = "";
-        tagController.text = "";
-        descriptionController.text = "";
+        bool cardSaveStatus;
+
+        if (widget.editableExpense != null) {
+          expenseData['id'] = widget.editableExpense!['id'];
+          cardSaveStatus = await editExpende(expenseData);
+        } else {
+          cardSaveStatus = await saveCardExpense(expenseData);
+        }
+
+        if (widget.editableExpense == null) {
+          expenseController.text = "";
+          tagController.text = "";
+          categoryController.text = "";
+        }
 
         if (cardSaveStatus) {
-          createSnackBar(context, "New expense added");
+          createSnackBar(
+              context,
+              (widget.editableExpense == null)
+                  ? "New expense added"
+                  : "Changes saved");
         } else {
           createSnackBar(
               context, "Could not add your expense, try again later");
         }
 
-        getCardDetailsByTime("Today", widget.cardType).then((value) {
+        getCardDetailsByTimeFlag("Today", widget.cardType).then((value) {
           setState(() => totalExpense = value);
         }).catchError((error) => print(error));
       }
@@ -123,9 +155,9 @@ class AddExpensesState extends State<AddExpenses> {
               ),
               ExpenseFeild(
                   formKey: formKey,
-                  descriptionController: descriptionController,
                   expenseController: expenseController,
-                  tagController: tagController),
+                  tagController: tagController,
+                  categoryController: categoryController),
             ],
           ),
         ),
@@ -140,9 +172,9 @@ class AddExpensesState extends State<AddExpenses> {
               onPressed: () {
                 setCardExpense(context);
               },
-              child: const Text(
-                "Save expense",
-                style: TextStyle(fontSize: 26),
+              child: Text(
+                saveBtnText,
+                style: const TextStyle(fontSize: 26),
               )),
         ),
       ),

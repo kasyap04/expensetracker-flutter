@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trackexpense/main.dart';
 import 'package:trackexpense/trackexpenses/controller/common.dart';
 
 import '../../trackexpenses/view/appBarView.dart';
+import '../controller/cardSetupController.dart';
 
 class SetupCard extends StatefulWidget {
   @override
@@ -47,11 +47,11 @@ class SetupCardState extends State<SetupCard> {
     });
   }
 
-  void configCards(BuildContext context) {
-    setCards(debitCardSelected, creditCardSelected).then((value) {
+  void configCards(BuildContext context) async {
+    await setInitialCards(debitCardSelected, creditCardSelected).then((value) {
+      print(value);
       if (value == true) {
         setState(() {
-          print("REDIRECTED");
           final NavigatorState? navigator = navigatorKey.currentState;
           navigator!.pushReplacement(
               MaterialPageRoute(builder: (context) => MyApp()));
