@@ -33,6 +33,7 @@ dependencies:
   intl: ^0.17.0
   carousel_slider: ^4.2.1
   sqflite: ^2.2.4
+  syncfusion_flutter_datepicker: ^20.4.49
   searchfield: ^0.7.5
 
 

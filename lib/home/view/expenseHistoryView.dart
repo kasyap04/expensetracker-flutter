@@ -35,7 +35,7 @@ class ExpenseHistoryHomeState extends State<ExpenseHistoryHome> {
                 ],
                 title: const Text("Delete?", textAlign: TextAlign.center),
                 content: const Text(
-                  "Are you sure you want to deletye this?",
+                  "Are you sure you want to delete this?",
                   textAlign: TextAlign.center,
                 ),
               )).then((value) async {
@@ -44,8 +44,6 @@ class ExpenseHistoryHomeState extends State<ExpenseHistoryHome> {
           status = await widget.deleteExpenseAction(expData['id']);
         }
       });
-
-      print("status = $status");
     } else {
       widget.editExpense(expData);
       status = true;
@@ -69,10 +67,13 @@ class ExpenseHistoryHomeState extends State<ExpenseHistoryHome> {
               String lastDate = "";
 
               for (var exp in allExpenses) {
-                String time = exp['date'].substring(11, exp['date'].length);
-                String date = exp['date'].substring(0, 11);
+                var formattedDate = DateFormat("HH:mm:ss")
+                    .parse(exp['date'].substring(11, exp['date'].length));
 
-                print(DateFormat("HH:mm:ss").parse(time));
+                // print();
+
+                String time = DateFormat("hh:ss a").format(formattedDate);
+                String date = exp['date'].substring(0, 11);
 
                 if (lastDate != date) {
                   lastDate = date;
@@ -116,6 +117,8 @@ class ExpenseHistoryHomeState extends State<ExpenseHistoryHome> {
                       cardType: exp['card'],
                       tag: exp['spend'],
                       time: time,
+                      transactionType: exp['type'],
+                      category: exp['category'],
                     )));
 
                 // myExpenses.add(D());
@@ -137,7 +140,7 @@ class ExpenseHistoryHomeState extends State<ExpenseHistoryHome> {
                   ),
                   Container(
                     decoration: BoxDecoration(
-                        color: const Color.fromARGB(28, 15, 103, 138),
+                        color: const Color.fromARGB(17, 15, 103, 138),
                         borderRadius: BorderRadius.circular(10)),
                     width: MediaQuery.of(context).size.width - 20,
                     margin: const EdgeInsets.only(left: 10),
@@ -166,11 +169,15 @@ class ExpenseHistoryChild extends StatelessWidget {
   final String tag;
   final String amount;
   final String time;
+  final String category;
+  final int transactionType;
   ExpenseHistoryChild(
       {required this.cardType,
       required this.tag,
       required this.amount,
-      required this.time});
+      required this.time,
+      required this.category,
+      required this.transactionType});
 
   @override
   Widget build(BuildContext context) {
@@ -205,23 +212,39 @@ class ExpenseHistoryChild extends StatelessWidget {
                   ),
                   const Padding(padding: EdgeInsets.only(bottom: 5)),
                   Text(
-                    "${cardType[0].toUpperCase()}${cardType.substring(1).toLowerCase()} card | $time",
+                    "${cardType[0].toUpperCase()}${cardType.substring(1).toLowerCase()} card | $category",
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   )
                 ],
               ),
-              Row(
+              Column(
                 children: [
-                  const Icon(
-                    Icons.currency_rupee,
-                    size: 15,
-                    color: Colors.grey,
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.currency_rupee,
+                        size: 15,
+                        color: Colors.grey,
+                      ),
+                      Text(
+                        amount,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: transactionType == 0
+                                ? Colors.red
+                                : Colors.green),
+                      ),
+                      Icon(
+                        transactionType == 0 ? Icons.remove : Icons.add,
+                        size: 15,
+                        color: transactionType == 0 ? Colors.red : Colors.green,
+                      )
+                    ],
                   ),
-                  Text(
-                    amount,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20),
-                  )
+                  const Padding(padding: EdgeInsets.only(bottom: 5)),
+                  Text(time,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12))
                 ],
               )
             ],
@@ -259,82 +282,3 @@ class DateChange extends StatelessWidget {
     );
   }
 }
-
-class D extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 2,
-      thickness: 1,
-    );
-  }
-}
-
-// class ExpenseHistory extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       decoration: BoxDecoration(
-//           color: Color.fromARGB(28, 15, 103, 138),
-//           borderRadius: BorderRadius.circular(10)),
-//       width: MediaQuery.of(context).size.width - 20,
-//       margin: EdgeInsets.only(left: 10),
-//       padding: EdgeInsets.all(10),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.start,
-//             children: [
-//               Container(
-//                 height: 40,
-//                 width: 40,
-//                 margin: EdgeInsets.only(right: 5),
-//                 child: Center(
-//                     child: Text(
-//                   "DC",
-//                   style: TextStyle(color: Colors.white),
-//                 )),
-//                 decoration: BoxDecoration(
-//                     color: const Color.fromARGB(255, 114, 24, 117),
-//                     borderRadius: BorderRadius.circular(100)),
-//               ),
-//               Container(
-//                 padding: EdgeInsets.only(top: 15, bottom: 15),
-//                 width: MediaQuery.of(context).size.width - 85,
-//                 child: Row(
-//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                   children: [
-//                     Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         Text(
-//                           "Tea",
-//                           style: TextStyle(fontSize: 25),
-//                         ),
-//                         Padding(padding: EdgeInsets.only(bottom: 5)),
-//                         Text(
-//                           "12:34 AM",
-//                           style: TextStyle(color: Colors.grey, fontSize: 12),
-//                         )
-//                       ],
-//                     ),
-//                     Text(
-//                       "13",
-//                       style:
-//                           TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-//                     )
-//                   ],
-//                 ),
-//               ),
-//             ],
-//           ),
-//           Divider(
-//             height: 2,
-//             thickness: 1,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

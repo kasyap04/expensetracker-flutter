@@ -1,13 +1,6 @@
-import 'dart:convert';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-// import 'package:trackexpense/addExpense/view/addExpenses.dart';
-// import 'package:carousel_slider/carousel_controller.dart';
 import 'package:trackexpense/home/controller/homePageController.dart';
-
-import '../../addExpense/controller/addExpenseController.dart';
-// import '../../expenseDetail/view/cardExpensesView.dart';
 
 class CardView extends StatefulWidget {
   final void Function(String cardTyp) addExpensePressed;
@@ -23,7 +16,6 @@ class CardView extends StatefulWidget {
 class CardViewState extends State<CardView> {
   @override
   Widget build(BuildContext context) {
-    print("CARD VIEW HOME");
     return FutureBuilder(
         future: getCards(),
         builder: (context, snapshot) {

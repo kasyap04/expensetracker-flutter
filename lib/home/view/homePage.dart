@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trackexpense/addExpense/view/addExpenses.dart';
 import '../../addExpense/model/addExpenseMode.dart';
 import '../../expenseDetail/view/cardExpensesView.dart';
+import '../../monthPlan/view/planMonthView.dart';
 import '../../trackexpenses/controller/common.dart';
 import 'cardView.dart';
 import '../../trackexpenses/view/appBarView.dart';
@@ -62,6 +63,16 @@ class HomePageState extends State<HomePage> {
     return status;
   }
 
+  void popUpClicked(int value) async {
+    final NavigatorState? navigator = navigatorKey.currentState;
+    var getBack = await navigator!
+        .push(MaterialPageRoute(builder: (context) => PlanMonth()));
+
+    if (getBack == null) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -69,8 +80,8 @@ class HomePageState extends State<HomePage> {
       navigatorKey: navigatorKey,
       home: Scaffold(
           appBar: AppBarView(
-            icon: Icons.settings,
-            iconClicked: () {},
+            pageSlug: "homepage",
+            popUpClicked: (value) => popUpClicked(value),
           ),
           body: ListView(
             // padding: const EdgeInsets.only(left: 10, right: 10),

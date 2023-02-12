@@ -26,17 +26,36 @@ class AddExpensesState extends State<AddExpenses> {
   String expenseTime = "Today";
 
   String saveBtnText = "Save expense";
+  int transactionType = 0;
+
+  Color incomeTextColor = Colors.black;
+  Color incomBgColor = const Color.fromARGB(255, 207, 207, 207);
+  Color expenseTextColor = Colors.white;
+  Color expenseBgColor = const Color.fromARGB(255, 103, 34, 112);
 
   @override
   void initState() {
     super.initState();
 
     if (widget.editableExpense != null) {
-      print(widget.editableExpense);
+      transactionType = widget.editableExpense!['type'];
       expenseController.text = widget.editableExpense!['amount'].toString();
       tagController.text = widget.editableExpense!['spend'];
       categoryController.text = widget.editableExpense!['category'];
       saveBtnText = "Save changes";
+    }
+
+    if (transactionType == 0) {
+      incomeTextColor = Colors.black;
+      incomBgColor = const Color.fromARGB(255, 207, 207, 207);
+
+      expenseTextColor = Colors.white;
+      expenseBgColor = const Color.fromARGB(255, 103, 34, 112);
+    } else {
+      incomeTextColor = Colors.white;
+      incomBgColor = const Color.fromARGB(255, 103, 34, 112);
+      expenseTextColor = Colors.black;
+      expenseBgColor = const Color.fromARGB(255, 207, 207, 207);
     }
 
     getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
@@ -95,6 +114,7 @@ class AddExpensesState extends State<AddExpenses> {
           'card': cardId,
           'category': categoryId,
           "date": date,
+          "type": transactionType
         };
 
         bool cardSaveStatus;
@@ -106,7 +126,7 @@ class AddExpensesState extends State<AddExpenses> {
           cardSaveStatus = await saveCardExpense(expenseData);
         }
 
-        if (widget.editableExpense == null) {
+        if (widget.editableExpense == null && cardSaveStatus) {
           expenseController.text = "";
           tagController.text = "";
           categoryController.text = "";
@@ -130,6 +150,25 @@ class AddExpensesState extends State<AddExpenses> {
     } catch (e) {
       print("ERROR => $e");
     }
+  }
+
+  void transactionSelected(int typeId) {
+    setState(() {
+      transactionType = typeId;
+      print("type = $transactionType");
+      if (typeId == 0) {
+        incomeTextColor = Colors.black;
+        incomBgColor = const Color.fromARGB(255, 207, 207, 207);
+
+        expenseTextColor = Colors.white;
+        expenseBgColor = const Color.fromARGB(255, 103, 34, 112);
+      } else {
+        incomeTextColor = Colors.white;
+        incomBgColor = const Color.fromARGB(255, 103, 34, 112);
+        expenseTextColor = Colors.black;
+        expenseBgColor = const Color.fromARGB(255, 207, 207, 207);
+      }
+    });
   }
 
   @override
@@ -157,7 +196,13 @@ class AddExpensesState extends State<AddExpenses> {
                   formKey: formKey,
                   expenseController: expenseController,
                   tagController: tagController,
-                  categoryController: categoryController),
+                  categoryController: categoryController,
+                  expenseBgColor: expenseBgColor,
+                  expenseTextColor: expenseTextColor,
+                  incomBgColor: incomBgColor,
+                  incomeTextColor: incomeTextColor,
+                  transactionType: (id) => transactionSelected(id),
+                  callSnackbar: (msg) => createSnackBar(context, msg)),
             ],
           ),
         ),

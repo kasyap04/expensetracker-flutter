@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppBarView extends StatelessWidget implements PreferredSizeWidget {
-  late IconData? icon;
-  late void Function()? iconClicked;
+  late void Function(int value)? popUpClicked;
+  late String? pageSlug;
   late bool? hasBackButton;
   late BuildContext? prevContext;
   AppBarView(
-      {this.icon, this.iconClicked, this.hasBackButton, this.prevContext});
+      {this.popUpClicked, this.hasBackButton, this.prevContext, this.pageSlug});
 
   void goBack() {
     Navigator.of(prevContext!).pop();
@@ -17,6 +17,13 @@ class AppBarView extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> appBarAction = [];
+
+    if (pageSlug == "homepage") {
+      appBarAction
+          .add(HomePagePopUp(popUpClicked: (value) => popUpClicked!(value)));
+    }
+
     return AppBar(
       leading: hasBackButton == true
           ? IconButton(
@@ -28,18 +35,44 @@ class AppBarView extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       backgroundColor: Colors.white,
       title: const Text(
-        "Track your expeses",
+        "Track your expenses",
         style: TextStyle(
             fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
       ),
       elevation: 0,
-      actions: [
-        IconButton(
-          onPressed: iconClicked,
-          icon: Icon(icon),
-          color: Colors.black,
-        )
-      ],
+      actions: appBarAction,
     );
+  }
+}
+
+class HomePagePopUp extends StatelessWidget {
+  final void Function(int value) popUpClicked;
+  HomePagePopUp({required this.popUpClicked});
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton(
+        iconSize: 20,
+        icon: const Icon(
+          Icons.more_vert,
+          color: Color.fromARGB(255, 0, 0, 0),
+          size: 24,
+        ),
+        onSelected: (choice) {
+          popUpClicked(choice);
+        },
+        itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 1,
+                child: Row(children: const [
+                  Icon(
+                    Icons.addchart_rounded,
+                    color: Color.fromARGB(255, 99, 99, 99),
+                    size: 20,
+                  ),
+                  Padding(padding: EdgeInsets.only(left: 12)),
+                  Text("Plan your month")
+                ]),
+              ),
+            ]);
   }
 }

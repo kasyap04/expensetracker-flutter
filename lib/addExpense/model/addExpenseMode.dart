@@ -2,10 +2,10 @@ import '../../trackexpenses/model/database.dart';
 
 Future<dynamic> getExpenseByTime(
     String cardType, String startDate, String endDate) async {
-  final db = await Sql.db();
   int cardId = await getCardId(cardType);
+  final db = await Sql.db();
   final List<Map<String, dynamic>> result = await db.rawQuery(
-      "SELECT SUM(amount) AS sum FROM expense WHERE date >= ? AND date<= ? AND card = ?",
+      "SELECT SUM(amount) AS sum FROM expense WHERE date >= ? AND date<= ? AND card = ? AND type = 0",
       [startDate, endDate, cardId]);
 
   if (result[0]['sum'] == null) {
@@ -35,6 +35,7 @@ Future<bool> saveCardExpense(Map<String, dynamic> expense) async {
     await db.insert('expense', expense);
     return true;
   } catch (e) {
+    print("ERROR => $e");
     return false;
   }
 }

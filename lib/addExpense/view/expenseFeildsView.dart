@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:searchfield/searchfield.dart';
-
 import '../../settings/model/settingsMode.dart';
 
 class ExpenseFeild extends StatelessWidget {
-  final formKey;
-  final expenseController;
-  final tagController;
-  final categoryController;
+  final GlobalKey formKey;
+  final TextEditingController expenseController;
+  final TextEditingController tagController;
+  final TextEditingController categoryController;
+
+  final void Function(int typeId) transactionType;
+  final Color incomeTextColor;
+  final Color expenseTextColor;
+  final Color incomBgColor;
+  final Color expenseBgColor;
+  final void Function(String msg) callSnackbar;
 
   ExpenseFeild(
       {required this.formKey,
       required this.expenseController,
       required this.tagController,
-      required this.categoryController});
+      required this.categoryController,
+      required this.transactionType,
+      required this.incomeTextColor,
+      required this.incomBgColor,
+      required this.expenseBgColor,
+      required this.expenseTextColor,
+      required this.callSnackbar});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -37,11 +47,22 @@ class ExpenseFeild extends StatelessWidget {
               FeildPadding(padding: 30),
               FeildLabel(label: "Category"),
               FeildPadding(padding: 5),
-              Category(controller: categoryController),
+              Category(
+                  controller: categoryController, callSnackbar: callSnackbar),
               FeildPadding(padding: 30),
               FeildLabel(label: "Spend for"),
               FeildPadding(padding: 5),
               TagView(controller: tagController),
+              FeildPadding(padding: 30),
+              FeildLabel(label: "Transaction type"),
+              FeildPadding(padding: 5),
+              TransactionType(
+                expenseBgColor: expenseBgColor,
+                expenseTextColor: expenseTextColor,
+                incomBgColor: incomBgColor,
+                incomeTextColor: incomeTextColor,
+                transactionSelected: transactionType,
+              )
             ],
           )),
     );
@@ -50,7 +71,8 @@ class ExpenseFeild extends StatelessWidget {
 
 class Category extends StatefulWidget {
   final controller;
-  Category({required this.controller});
+  final void Function(String msg) callSnackbar;
+  Category({required this.controller, required this.callSnackbar});
   @override
   State<Category> createState() => CategoryState();
 }
@@ -65,8 +87,12 @@ class CategoryState extends State<Category> {
           if (name.isNotEmpty) {
             try {
               var categoryId = await addNewCategory(name);
+              widget.callSnackbar("New category added");
               setState(() {});
-            } catch (e) {}
+            } catch (e) {
+              widget.callSnackbar(
+                  "Failed to create new category, Please again later");
+            }
           }
         },
         child: const Text(
@@ -100,11 +126,17 @@ class CategoryState extends State<Category> {
               searchStyle: const TextStyle(fontSize: 18),
               searchInputDecoration: InputDecoration(
                   suffix: addCategory,
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 126, 42, 122)),
+                      borderRadius: BorderRadius.circular(6)),
                   focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.grey),
+                      borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 126, 42, 122)),
                       borderRadius: BorderRadius.circular(6)),
                   border: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.grey),
+                      borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 126, 42, 122)),
                       borderRadius: BorderRadius.circular(6))),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -149,11 +181,17 @@ class ExpenseView extends StatelessWidget {
             size: 16,
             color: Colors.grey,
           ),
+          enabledBorder: OutlineInputBorder(
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
+              borderRadius: BorderRadius.circular(6)),
           focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
               borderRadius: BorderRadius.circular(6)),
           border: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
               borderRadius: BorderRadius.circular(6))),
     );
   }
@@ -177,11 +215,17 @@ class TagView extends StatelessWidget {
       textCapitalization: TextCapitalization.sentences,
       style: const TextStyle(fontSize: 18),
       decoration: InputDecoration(
+          enabledBorder: OutlineInputBorder(
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
+              borderRadius: BorderRadius.circular(6)),
           focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
               borderRadius: BorderRadius.circular(6)),
           border: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.grey),
+              borderSide:
+                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
               borderRadius: BorderRadius.circular(6))),
     );
   }
@@ -210,5 +254,81 @@ class FeildPadding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(padding: EdgeInsets.only(bottom: padding));
+  }
+}
+
+class TransactionType extends StatefulWidget {
+  final void Function(int typeId) transactionSelected;
+  final Color incomeTextColor;
+  final Color expenseTextColor;
+  final Color incomBgColor;
+  final Color expenseBgColor;
+
+  TransactionType(
+      {required this.transactionSelected,
+      required this.incomeTextColor,
+      required this.incomBgColor,
+      required this.expenseBgColor,
+      required this.expenseTextColor});
+  @override
+  State<TransactionType> createState() => TransactionTypeState();
+}
+
+class TransactionTypeState extends State<TransactionType> {
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          children: [
+            TransactionSelector(
+                text: "Expense",
+                bgColor: widget
+                    .expenseBgColor, //,const Color.fromARGB(255, 221, 221, 221),
+                textColor: widget.expenseTextColor, //Colors.black,
+                transactionSelected: () => widget.transactionSelected(0)),
+            TransactionSelector(
+              text: "Income",
+              bgColor: widget
+                  .incomBgColor, //const Color.fromARGB(255, 103, 34, 112),
+              textColor: widget.incomeTextColor, //Colors.white,
+              transactionSelected: () => widget.transactionSelected(1),
+            )
+          ],
+        ));
+  }
+}
+
+class TransactionSelector extends StatefulWidget {
+  final String text;
+  final textColor;
+  final bgColor;
+  final void Function() transactionSelected;
+  TransactionSelector(
+      {required this.text,
+      required this.textColor,
+      required this.bgColor,
+      required this.transactionSelected});
+  @override
+  State<TransactionSelector> createState() => TransactionSelectorState();
+}
+
+class TransactionSelectorState extends State<TransactionSelector> {
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+        child: Container(
+      height: 50,
+      color: widget.bgColor,
+      child: InkWell(
+        onTap: widget.transactionSelected,
+        child: Center(
+          child: Text(
+            widget.text,
+            style: TextStyle(color: widget.textColor),
+          ),
+        ),
+      ),
+    ));
   }
 }
