@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
+import '../../trackexpenses/controller/colors.dart';
 
-class CardWidget extends StatelessWidget {
-  final void Function() menuPressed;
+class TotalExpenseView extends StatelessWidget {
   final String expenseTime;
   final String expense;
-  // final String cardType;
+  final String expenseType;
 
   final void Function(String value) itemSelected;
+  final void Function(String value) expenseTypeButtonAction;
 
-  CardWidget(
-      {required this.menuPressed,
-      required this.expenseTime,
-      required this.expense,
-      // required this.cardType,
-      required this.itemSelected(String value)});
+  TotalExpenseView({
+    required this.expenseTime,
+    required this.expense,
+    required this.expenseType,
+    required this.itemSelected(String value),
+    required this.expenseTypeButtonAction(String value),
+  });
+
+  Color selectedExpenseButtonColor = const Color.fromARGB(206, 255, 255, 255);
+  Color unselectExpenseButtonColor = const Color.fromARGB(185, 158, 158, 158);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 10, bottom: 10),
-      margin: const EdgeInsets.only(bottom: 20),
-      // width: MediaQuery.of(context).size.width,
+      padding: const EdgeInsets.only(left: 10),
+      margin: const EdgeInsets.only(bottom: 30),
       decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 126, 42, 122),
-          borderRadius: BorderRadius.circular(10)),
+          color: AppColor().primary, borderRadius: BorderRadius.circular(10)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -81,11 +84,26 @@ class CardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(
-                "card name",
-                style:
-                    const TextStyle(color: Color.fromARGB(255, 170, 170, 170)),
-              ),
+              TextButton(
+                  onPressed: () => expenseTypeButtonAction("normal"),
+                  child: Text(
+                    "Normal expense",
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: expenseType == "normal"
+                            ? selectedExpenseButtonColor
+                            : unselectExpenseButtonColor),
+                  )),
+              TextButton(
+                  onPressed: () => expenseTypeButtonAction("monthly"),
+                  child: Text(
+                    "Monthly expense",
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: expenseType == "monthly"
+                            ? selectedExpenseButtonColor
+                            : unselectExpenseButtonColor),
+                  )),
               const Padding(padding: EdgeInsets.only(left: 10))
             ],
           )

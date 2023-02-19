@@ -34,9 +34,10 @@ class Sql {
         card INT,
         category INT,
         type INT NOT NULL, 
+        monthly_plan INT,     
         date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
-      """); // type => expense = 0;    income = 1
+      """); // type => expense = 0; income = 1 :::   monthly_plan => true = 1 ;  false = (0/NULL)
   }
 
   static Future<void> createTableCard(Database database) async {

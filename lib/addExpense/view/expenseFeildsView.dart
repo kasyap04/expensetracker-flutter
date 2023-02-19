@@ -2,72 +2,72 @@ import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
 import '../../settings/model/settingsMode.dart';
 
-class ExpenseFeild extends StatelessWidget {
-  final GlobalKey formKey;
-  final TextEditingController expenseController;
-  final TextEditingController tagController;
-  final TextEditingController categoryController;
+// class ExpenseFeild extends StatelessWidget {
+//   final GlobalKey formKey;
+//   final TextEditingController expenseController;
+//   final TextEditingController tagController;
+//   final TextEditingController categoryController;
 
-  final void Function(int typeId) transactionType;
-  final Color incomeTextColor;
-  final Color expenseTextColor;
-  final Color incomBgColor;
-  final Color expenseBgColor;
-  final void Function(String msg) callSnackbar;
+//   final void Function(int typeId) transactionType;
+//   final Color incomeTextColor;
+//   final Color expenseTextColor;
+//   final Color incomBgColor;
+//   final Color expenseBgColor;
+//   final void Function(String msg) callSnackbar;
 
-  ExpenseFeild(
-      {required this.formKey,
-      required this.expenseController,
-      required this.tagController,
-      required this.categoryController,
-      required this.transactionType,
-      required this.incomeTextColor,
-      required this.incomBgColor,
-      required this.expenseBgColor,
-      required this.expenseTextColor,
-      required this.callSnackbar});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      // height: 100,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-          color: const Color.fromARGB(15, 4, 49, 116),
-          borderRadius: BorderRadius.circular(10)),
-      child: Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FeildLabel(
-                label: "Amount",
-              ),
-              FeildPadding(padding: 5),
-              ExpenseView(controller: expenseController),
-              FeildPadding(padding: 30),
-              FeildLabel(label: "Category"),
-              FeildPadding(padding: 5),
-              Category(
-                  controller: categoryController, callSnackbar: callSnackbar),
-              FeildPadding(padding: 30),
-              FeildLabel(label: "Spend for"),
-              FeildPadding(padding: 5),
-              TagView(controller: tagController),
-              FeildPadding(padding: 30),
-              FeildLabel(label: "Transaction type"),
-              FeildPadding(padding: 5),
-              TransactionType(
-                expenseBgColor: expenseBgColor,
-                expenseTextColor: expenseTextColor,
-                incomBgColor: incomBgColor,
-                incomeTextColor: incomeTextColor,
-                transactionSelected: transactionType,
-              )
-            ],
-          )),
-    );
-  }
-}
+//   ExpenseFeild(
+//       {required this.formKey,
+//       required this.expenseController,
+//       required this.tagController,
+//       required this.categoryController,
+//       required this.transactionType,
+//       required this.incomeTextColor,
+//       required this.incomBgColor,
+//       required this.expenseBgColor,
+//       required this.expenseTextColor,
+//       required this.callSnackbar});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       // height: 100,
+//       padding: const EdgeInsets.all(10),
+//       decoration: BoxDecoration(
+//           color: const Color.fromARGB(15, 4, 49, 116),
+//           borderRadius: BorderRadius.circular(10)),
+//       child: Form(
+//           key: formKey,
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               FeildLabel(
+//                 label: "Amount",
+//               ),
+//               FeildPadding(padding: 5),
+//               ExpenseView(controller: expenseController),
+//               FeildPadding(padding: 30),
+//               FeildLabel(label: "Category"),
+//               FeildPadding(padding: 5),
+//               Category(
+//                   controller: categoryController, callSnackbar: callSnackbar),
+//               FeildPadding(padding: 30),
+//               FeildLabel(label: "Spend for"),
+//               FeildPadding(padding: 5),
+//               TagView(controller: tagController),
+//               FeildPadding(padding: 30),
+//               FeildLabel(label: "Transaction type"),
+//               FeildPadding(padding: 5),
+//               TransactionType(
+//                 expenseBgColor: expenseBgColor,
+//                 expenseTextColor: expenseTextColor,
+//                 incomBgColor: incomBgColor,
+//                 incomeTextColor: incomeTextColor,
+//                 transactionSelected: transactionType,
+//               )
+//             ],
+//           )),
+//     );
+//   }
+// }
 
 class Category extends StatefulWidget {
   final controller;
@@ -155,7 +155,8 @@ class CategoryState extends State<Category> {
 
 class ExpenseView extends StatelessWidget {
   final controller;
-  ExpenseView({required this.controller});
+  final String label;
+  ExpenseView({required this.controller, required this.label});
 
   dynamic expendeValidator(dynamic value) {
     if (value == null || value.isEmpty) {
@@ -169,30 +170,38 @@ class ExpenseView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      validator: (value) => expendeValidator(value),
-      textCapitalization: TextCapitalization.sentences,
-      style: const TextStyle(fontSize: 18),
-      decoration: InputDecoration(
-          prefix: const Icon(
-            Icons.currency_rupee,
-            size: 16,
-            color: Colors.grey,
-          ),
-          enabledBorder: OutlineInputBorder(
-              borderSide:
-                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
-              borderRadius: BorderRadius.circular(6)),
-          focusedBorder: OutlineInputBorder(
-              borderSide:
-                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
-              borderRadius: BorderRadius.circular(6)),
-          border: OutlineInputBorder(
-              borderSide:
-                  const BorderSide(color: Color.fromARGB(255, 126, 42, 122)),
-              borderRadius: BorderRadius.circular(6))),
+    return Column(
+      children: [
+        FeildLabel(
+          label: label,
+        ),
+        FeildPadding(padding: 5),
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          validator: (value) => expendeValidator(value),
+          textCapitalization: TextCapitalization.sentences,
+          style: const TextStyle(fontSize: 18),
+          decoration: InputDecoration(
+              prefix: const Icon(
+                Icons.currency_rupee,
+                size: 11,
+                color: Colors.grey,
+              ),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 126, 42, 122)),
+                  borderRadius: BorderRadius.circular(6)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 126, 42, 122)),
+                  borderRadius: BorderRadius.circular(6)),
+              border: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 126, 42, 122)),
+                  borderRadius: BorderRadius.circular(6))),
+        ),
+      ],
     );
   }
 }

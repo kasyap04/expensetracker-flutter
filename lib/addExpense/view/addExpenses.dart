@@ -7,9 +7,10 @@ import '../../trackexpenses/view/appBarView.dart';
 import 'expenseFeildsView.dart';
 
 class AddExpenses extends StatefulWidget {
-  final String cardType;
+  late int? monthlyPlanCatId;
+  // final String cardType;
   late Map? editableExpense;
-  AddExpenses({required this.cardType, this.editableExpense});
+  AddExpenses({this.editableExpense, this.monthlyPlanCatId});
   @override
   State<AddExpenses> createState() => AddExpensesState();
 }
@@ -58,11 +59,11 @@ class AddExpensesState extends State<AddExpenses> {
       expenseBgColor = const Color.fromARGB(255, 207, 207, 207);
     }
 
-    getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
-      setState(() {
-        totalExpense = value;
-      });
-    }).catchError((error) => print(error));
+    // getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
+    //   setState(() {
+    //     totalExpense = value;
+    //   });
+    // }).catchError((error) => print(error));
   }
 
   void itemSelected(String value) {
@@ -70,11 +71,11 @@ class AddExpensesState extends State<AddExpenses> {
       expenseTime = value;
     });
 
-    getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
-      setState(() {
-        totalExpense = value;
-      });
-    }).catchError((error) => print(error));
+    // getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
+    //   setState(() {
+    //     totalExpense = value;
+    //   });
+    // }).catchError((error) => print(error));
   }
 
   void createSnackBar(BuildContext context, String msg) {
@@ -106,12 +107,12 @@ class AddExpensesState extends State<AddExpenses> {
         }
 
         int categoryId = await getCatgoryId(category);
-        int cardId = await getCardId(widget.cardType);
+        // int cardId = await getCardId(widget.cardType);
 
         Map<String, dynamic> expenseData = {
           "name": tag,
           "amount": expense,
-          'card': cardId,
+          // 'card': cardId,
           'category': categoryId,
           "date": date,
           "type": transactionType
@@ -143,9 +144,9 @@ class AddExpensesState extends State<AddExpenses> {
               context, "Could not add your expense, try again later");
         }
 
-        getCardDetailsByTimeFlag("Today", widget.cardType).then((value) {
-          setState(() => totalExpense = value);
-        }).catchError((error) => print(error));
+        // getCardDetailsByTimeFlag("Today", widget.cardType).then((value) {
+        //   setState(() => totalExpense = value);
+        // }).catchError((error) => print(error));
       }
     } catch (e) {
       print("ERROR => $e");
@@ -187,22 +188,30 @@ class AddExpensesState extends State<AddExpenses> {
             children: [
               CardWidget(
                 menuPressed: () {},
-                cardType: widget.cardType,
+                // cardType: widget.cardType,
                 expense: totalExpense,
                 expenseTime: expenseTime,
                 itemSelected: (value) => itemSelected(value),
               ),
-              ExpenseFeild(
-                  formKey: formKey,
-                  expenseController: expenseController,
-                  tagController: tagController,
-                  categoryController: categoryController,
-                  expenseBgColor: expenseBgColor,
-                  expenseTextColor: expenseTextColor,
-                  incomBgColor: incomBgColor,
-                  incomeTextColor: incomeTextColor,
-                  transactionType: (id) => transactionSelected(id),
-                  callSnackbar: (msg) => createSnackBar(context, msg)),
+              Form(
+                key: formKey,
+                child: Column(
+                  children: [
+                    ExpenseView(controller: expenseController, label: "Amount"),
+                  ],
+                ),
+              )
+              // ExpenseFeild(
+              //     formKey: formKey,
+              //     expenseController: expenseController,
+              //     tagController: tagController,
+              //     categoryController: categoryController,
+              //     expenseBgColor: expenseBgColor,
+              //     expenseTextColor: expenseTextColor,
+              //     incomBgColor: incomBgColor,
+              //     incomeTextColor: incomeTextColor,
+              //     transactionType: (id) => transactionSelected(id),
+              //     callSnackbar: (msg) => createSnackBar(context, msg)),
             ],
           ),
         ),

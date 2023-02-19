@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:trackexpense/addExpense/view/addExpenses.dart';
+import 'package:trackexpense/home/view/totalExpenseView.dart';
 import '../../addExpense/model/addExpenseMode.dart';
+// import '../../addExpense/view/cardWidgetView.dart';
 import '../../expenseDetail/view/cardExpensesView.dart';
+import '../../monthPlan/model/displayMonthlyPanView.dart';
 import '../../monthPlan/view/planMonthView.dart';
-import '../../trackexpenses/controller/common.dart';
-import 'cardView.dart';
+// import '../../monthPlan/view/showMonthlyPlanView.dart';
+// import '../../trackexpenses/controller/common.dart';
+import 'NavSectionView.dart';
+// import 'cardView.dart';
 import '../../trackexpenses/view/appBarView.dart';
 import 'expenseHistoryView.dart';
 
@@ -20,7 +25,7 @@ class HomePageState extends State<HomePage> {
     final NavigatorState? navigator = navigatorKey.currentState;
     var getBack = await navigator!.push(MaterialPageRoute(
         builder: (context) => AddExpenses(
-              cardType: card,
+            // cardType: card,
             )));
 
     if (getBack == null) {
@@ -44,7 +49,7 @@ class HomePageState extends State<HomePage> {
     final NavigatorState? navigator = navigatorKey.currentState;
     var getBack = await navigator!.push(MaterialPageRoute(
         builder: (context) => AddExpenses(
-              cardType: expData['card'],
+              // cardType: expData['card'],
               editableExpense: expData,
             )));
 
@@ -73,6 +78,27 @@ class HomePageState extends State<HomePage> {
     }
   }
 
+  void optionPressed(int index) async {
+    final NavigatorState? navigator = navigatorKey.currentState;
+    var getBack;
+    if (index == 1) {
+      getBack = await navigator!
+          .push(MaterialPageRoute(builder: (context) => PlanMonth()));
+    } else if (index == 2) {
+      getBack = await navigator!.push(MaterialPageRoute(
+          builder: (context) => DisplayMonthlyPlan(
+                action: "add",
+              )));
+    } else if (index == 3) {
+      getBack = await navigator!.push(MaterialPageRoute(
+          builder: (context) => DisplayMonthlyPlan(action: "view")));
+    }
+
+    if (getBack == null) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -84,12 +110,30 @@ class HomePageState extends State<HomePage> {
             popUpClicked: (value) => popUpClicked(value),
           ),
           body: ListView(
-            // padding: const EdgeInsets.only(left: 10, right: 10),
+            padding: const EdgeInsets.only(left: 10, right: 10),
             children: [
-              CardView(
-                  cardPressed: (value) => cardClicked(context, value),
-                  addExpensePressed: (value) =>
-                      addExpenseClicked(context, value)),
+              TotalExpenseView(
+                  expenseType: "normal",
+                  expense: "2342",
+                  expenseTime: "Today",
+                  expenseTypeButtonAction: (val) {},
+                  itemSelected: (val) {}),
+              NavSectionView(
+                optionPressed: (index) => optionPressed(index),
+                navheader: "Plan my month",
+                slug: "monthly",
+              ),
+              const Padding(padding: EdgeInsets.only(bottom: 20)),
+              NavSectionView(
+                optionPressed: (index) => optionPressed(index),
+                navheader: "Other expense",
+                slug: "normal",
+              ),
+              // ViewAllMonthlyExpense(),
+              // CardView(
+              //     cardPressed: (value) => cardClicked(context, value),
+              //     addExpensePressed: (value) =>
+              //         addExpenseClicked(context, value)),
               const Padding(padding: EdgeInsets.only(bottom: 20, top: 20)),
               ExpenseHistoryHome(
                 deleteExpenseAction: (id) async =>

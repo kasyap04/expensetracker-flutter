@@ -26,3 +26,31 @@ Future<bool> createPlanData(List<Map<String, dynamic>> planData) async {
     return false;
   }
 }
+
+Future<dynamic> monthlyPlan(String date) async {
+  try {
+    final db = await Sql.db();
+    // var res = await db.rawQuery(
+    //     "SELECT * FROM plan AS p JOIN plan_data AS pd ON p.id = pd.plan_id WHERE p.start_date <= '$date' AND p.end_date >= '$date'");
+
+    var res = await db.query('plan',
+        where: "start_date <= ? AND end_date  >= ?", whereArgs: [date, date]);
+
+    return res;
+  } catch (e) {
+    print("ERROR monthlyPlan => $e");
+  }
+}
+
+Future<dynamic> getPlanData(int id) async {
+  try {
+    final db = await Sql.db();
+
+    var res =
+        await db.query('plan_data', where: "plan_id = ?", whereArgs: [id]);
+
+    return res;
+  } catch (e) {
+    print("ERROR monthlyPlan => $e");
+  }
+}

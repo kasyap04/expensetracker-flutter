@@ -89,8 +89,7 @@ class PlanMonthState extends State<PlanMonth> {
 
         // print(plan);
 
-        int planId = 1;
-        //await createMonthlyPlan(plan);
+        int planId = await createMonthlyPlan(plan);
 
         if (planId == 0) {
           createSnackBar(
