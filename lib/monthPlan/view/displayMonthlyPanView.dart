@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import '../../addExpense/view/addExpenses.dart';
 import '../../trackexpenses/controller/colors.dart';
 import '../../trackexpenses/view/appBarView.dart';
+import '../../trackexpenses/view/commonWidget.dart';
 import '../controller/monthlyPlanController.dart';
-import '../view/planMonthView.dart';
+import '../model/monthlyPlanModel.dart';
+import 'planMonthView.dart';
 
 class DisplayMonthlyPlan extends StatefulWidget {
   final String action;
@@ -71,6 +73,17 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
     }
   }
 
+  void monthlyPlanPopupAction(choice) async {
+    if (choice == 2) {
+      dynamic res = await deleteMonthlyPlan(selectedPlanId);
+      if (res != null) {
+        setState(() {
+          selectedPlanId = 0;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -80,14 +93,28 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
             appBar: AppBarView(
               prevContext: context,
               hasBackButton: true,
+              pageSlug: "vewaddmonthlyplan",
+              actionPopup: MonthlyPlanPopUp(
+                  monthlyPlanPopupAction: (choice) =>
+                      monthlyPlanPopupAction(choice)),
             ),
             body: FutureBuilder(
               future: getActiveMontlyPlan(selectedPlanId),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
+                  if (snapshot.data.isEmpty && selectedPlanId == 0) {
+                    return NoMonthlyPlanView(
+                      createMonthlyPlanButon: () =>
+                          createMonthlyPlanAction(context),
+                    );
+                  }
                   if (snapshot.data.isNotEmpty) {
                     activeMonthlyPlan = snapshot.data?[0];
                     activePlanCats = snapshot.data?[1];
+                  }
+
+                  if (selectedPlanId == 0) {
+                    selectedPlanId = activeMonthlyPlan[0]['id'];
                   }
 
                   if (selectedCats.isEmpty && snapshot.data.isNotEmpty) {
@@ -100,39 +127,33 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
 
                   snapshot.data?.clear();
 
-                  if (snapshot.data.isEmpty) {
-                    return NoMonthlyPlanView(
-                      createMonthlyPlanButon: () =>
-                          createMonthlyPlanAction(context),
-                    );
-                  } else {
-                    return ListView(
-                      padding: const EdgeInsets.all(10),
-                      children: [
-                        Text(
-                          pageHeader,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        PlanListView(
-                          planSelected: (int id) => showExpansesByPlan(id),
-                          planList: activeMonthlyPlan,
-                        ),
-                        const Padding(padding: EdgeInsets.only(bottom: 40)),
-                        ExpenseCategories(
-                          selectedCats: selectedCats,
-                          selectedPlan: activePlanCats,
-                          categoryPressed:
-                              (int catId, Map<String, dynamic> catData) =>
-                                  categoryPressed(catId, catData),
-                        ),
-                        const Padding(padding: EdgeInsets.only(bottom: 40)),
-                        Visibility(
-                            visible: widget.action == "view" ? true : false,
-                            child: ExpenseHistory()),
-                      ],
-                    );
-                  }
+                  return ListView(
+                    padding: const EdgeInsets.all(10),
+                    children: [
+                      Text(
+                        pageHeader,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      PlanListView(
+                        planSelected: (int id) => showExpansesByPlan(id),
+                        planList: activeMonthlyPlan,
+                      ),
+                      const Padding(padding: EdgeInsets.only(bottom: 40)),
+                      ExpenseCategories(
+                        selectedCats: selectedCats,
+                        selectedPlan: activePlanCats,
+                        categoryPressed:
+                            (int catId, Map<String, dynamic> catData) =>
+                                categoryPressed(catId, catData),
+                      ),
+                      const Padding(padding: EdgeInsets.only(bottom: 40)),
+                      Visibility(
+                          visible: widget.action == "view" ? true : false,
+                          child: ExpenseHistory(selectedCat: selectedCats)),
+                    ],
+                  );
+                  // }
                 } else {
                   return CircularProgressIndicator();
                 }
@@ -142,6 +163,8 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
 }
 
 class ExpenseHistory extends StatefulWidget {
+  final List selectedCat;
+  ExpenseHistory({required this.selectedCat});
   @override
   State<ExpenseHistory> createState() => ExpenseHistoryState();
 }
@@ -149,10 +172,52 @@ class ExpenseHistory extends StatefulWidget {
 class ExpenseHistoryState extends State<ExpenseHistory> {
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Expense history",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Padding(padding: EdgeInsets.only(bottom: 15)),
+        FutureBuilder(
+            future: getMonthlyExpenseList(widget.selectedCat),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                print(snapshot.data);
+
+                // ExpenseListView()
+
+                if (snapshot.data.isNotEmpty) {
+                  List<Widget> listChildren = <Widget>[];
+
+                  for (var exp in snapshot.data) {
+                    var formattedDate = DateFormat("HH:mm:ss")
+                        .parse(exp['date'].substring(11, exp['date'].length));
+
+                    String time = DateFormat("hh:ss a").format(formattedDate);
+                    String date = exp['date'].substring(0, 11);
+
+                    listChildren.add(ExpenseListView(
+                      amount: exp['amount'].toString(),
+                      category: exp['name'],
+                      date: DateFormat.yMMMd()
+                          .format(DateFormat("yyy-MM-DD").parse(date)),
+                      time: time,
+                    ));
+                  }
+
+                  return ListView(
+                    padding: const EdgeInsets.only(left: 10, right: 10),
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    children: listChildren,
+                  );
+                } else {
+                  return Text("No epxneses");
+                }
+              } else {
+                return CircularProgressIndicator();
+              }
+            })
       ],
     );
   }
@@ -407,11 +472,104 @@ class NoMonthlyPlanView extends StatelessWidget {
           Text("You don't have a monthly plan",
               style: TextStyle(color: AppColor().lightgrey)),
           const Padding(padding: EdgeInsets.only(bottom: 10)),
-          ElevatedButton(
-            onPressed: createMonthlyPlanButon,
-            child: const Text("Create monthly plan"),
+          PrimaryButton(
+            action: createMonthlyPlanButon,
+            buttonLabel: "Create monthly plan",
           )
         ],
+      ),
+    );
+  }
+}
+
+class MonthlyPlanPopUp extends StatelessWidget {
+  final void Function(int choice) monthlyPlanPopupAction;
+  MonthlyPlanPopUp({required this.monthlyPlanPopupAction});
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton(
+        iconSize: 20,
+        icon: const Icon(
+          Icons.more_vert,
+          color: Color.fromARGB(255, 0, 0, 0),
+          size: 24,
+        ),
+        onSelected: (choice) => monthlyPlanPopupAction(choice),
+        itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 1,
+                child: Row(children: [
+                  Icon(
+                    Icons.edit,
+                    color: AppColor().lightgrey,
+                    size: 20,
+                  ),
+                  const Padding(padding: EdgeInsets.only(left: 12)),
+                  const Text("Edit selected plan")
+                ]),
+              ),
+              PopupMenuItem(
+                value: 2,
+                child: Row(children: [
+                  Icon(
+                    Icons.delete,
+                    color: AppColor().lightgrey,
+                    size: 20,
+                  ),
+                  const Padding(padding: EdgeInsets.only(left: 12)),
+                  const Text("Delete selected plan")
+                ]),
+              ),
+            ]);
+  }
+}
+
+class ExpenseListView extends StatelessWidget {
+  final String category;
+  final String amount;
+  final String date;
+  final String time;
+  ExpenseListView(
+      {required this.category,
+      required this.amount,
+      required this.date,
+      required this.time});
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: UniqueKey(),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "$category",
+              style: const TextStyle(fontSize: 17),
+            ),
+            Row(
+              children: [
+                const Icon(
+                  Icons.currency_rupee,
+                  size: 15,
+                ),
+                Text(amount, style: const TextStyle(fontSize: 17))
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(date),
+                const Padding(padding: EdgeInsets.only(bottom: 2)),
+                Text(
+                  time,
+                  style: const TextStyle(fontSize: 12),
+                )
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

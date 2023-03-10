@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '../../trackexpenses/view/appBarView.dart';
-import '../model/monthPlanModel.dart';
+import 'monthPlanModel.dart';
 
 class PlanMonth extends StatefulWidget {
   @override

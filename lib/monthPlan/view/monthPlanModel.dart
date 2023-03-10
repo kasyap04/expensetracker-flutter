@@ -78,3 +78,15 @@ Future<dynamic> getPlanData(int id) async {
     print("ERROR monthlyPlan => $e");
   }
 }
+
+Future<dynamic> getExpenseList(List expList) async {
+  try {
+    final db = await Sql.db();
+    var res = await db.query('expense',
+        where: "monthly_plan = ? AND category IN (${expList.join(',')})",
+        whereArgs: [1]);
+    return res;
+  } catch (e) {
+    print(e);
+  }
+}

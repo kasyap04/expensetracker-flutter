@@ -4,7 +4,7 @@ import 'package:trackexpense/home/view/totalExpenseView.dart';
 import '../../addExpense/model/addExpenseMode.dart';
 // import '../../addExpense/view/cardWidgetView.dart';
 import '../../expenseDetail/view/cardExpensesView.dart';
-import '../../monthPlan/model/displayMonthlyPanView.dart';
+import '../../monthPlan/view/displayMonthlyPanView.dart';
 import '../../monthPlan/view/planMonthView.dart';
 // import '../../monthPlan/view/showMonthlyPlanView.dart';
 // import '../../trackexpenses/controller/common.dart';

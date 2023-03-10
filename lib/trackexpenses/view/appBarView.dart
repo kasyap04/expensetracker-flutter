@@ -5,8 +5,13 @@ class AppBarView extends StatelessWidget implements PreferredSizeWidget {
   late String? pageSlug;
   late bool? hasBackButton;
   late BuildContext? prevContext;
+  late Widget? actionPopup;
   AppBarView(
-      {this.popUpClicked, this.hasBackButton, this.prevContext, this.pageSlug});
+      {this.popUpClicked,
+      this.hasBackButton,
+      this.prevContext,
+      this.pageSlug,
+      this.actionPopup});
 
   void goBack() {
     Navigator.of(prevContext!).pop();
@@ -22,6 +27,8 @@ class AppBarView extends StatelessWidget implements PreferredSizeWidget {
     if (pageSlug == "homepage") {
       appBarAction
           .add(HomePagePopUp(popUpClicked: (value) => popUpClicked!(value)));
+    } else if (pageSlug == "vewaddmonthlyplan") {
+      appBarAction.add(actionPopup!);
     }
 
     return AppBar(
