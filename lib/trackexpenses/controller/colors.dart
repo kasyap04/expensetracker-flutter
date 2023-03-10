@@ -9,4 +9,9 @@ class AppColor {
   Color black = Colors.black;
   Color white = Colors.white;
   Color montlyPlanCatColor = const Color.fromARGB(255, 139, 139, 139);
+
+  Color rupeeOnPrimaryColor = const Color.fromARGB(146, 216, 216, 216);
+  Color lightTextOnPrimary = const Color.fromARGB(146, 216, 216, 216);
+
+  // addExpense.dart
 }

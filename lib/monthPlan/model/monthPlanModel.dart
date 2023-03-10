@@ -49,7 +49,31 @@ Future<dynamic> getPlanData(int id) async {
     var res =
         await db.query('plan_data', where: "plan_id = ?", whereArgs: [id]);
 
-    return res;
+    var result = [];
+
+    for (var plan_data in res) {
+      var totalExpenseQry = await db.rawQuery(
+          "SELECT SUM(amount) AS sum FROM expense WHERE category = ? AND type = 0",
+          [plan_data['id']]);
+
+      String totalExpense = "0";
+
+      if (totalExpenseQry[0]['sum'] == null) {
+        totalExpense = "0";
+      } else {
+        totalExpense = totalExpenseQry[0]['sum'].toString();
+      }
+
+      result.add({
+        "id": plan_data["id"],
+        "expense_name": plan_data["expense_name"],
+        "spend_amount": totalExpense,
+        "estimat_amount": plan_data["estimat_amount"],
+        "plan_id": plan_data["plan_id"]
+      });
+    }
+
+    return result;
   } catch (e) {
     print("ERROR monthlyPlan => $e");
   }

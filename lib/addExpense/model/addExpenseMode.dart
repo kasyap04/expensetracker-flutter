@@ -15,6 +15,20 @@ Future<dynamic> getExpenseByTime(
   }
 }
 
+Future<dynamic> getMonthlyExpenseByTime(
+    String startDate, String endDate, int catId) async {
+  final db = await Sql.db();
+  final List<Map<String, dynamic>> result = await db.rawQuery(
+      "SELECT SUM(amount) AS sum FROM expense WHERE date >= ? AND date<= ? AND category = ? AND type = 0",
+      [startDate, endDate, catId]);
+
+  if (result[0]['sum'] == null) {
+    return 0;
+  } else {
+    return result[0]['sum'];
+  }
+}
+
 Future<int> getCatgoryId(String name) async {
   final db = await Sql.db();
   List cat = await db.query('category',

@@ -5,16 +5,8 @@ import '../../trackexpenses/model/database.dart';
 Future<List> getSavedCards() async {
   final db = await Sql.db();
   final result = await db.query('card', where: "active = ?", whereArgs: [1]);
-  List cards = [];
-  for (var element in result) {
-    cards.add({
-      'card': element['name'],
-      'amount':
-          await getCardDetailsByTimeFlag("Today", element['name'].toString())
-    });
-  }
-  // print(test);
-  return cards;
+
+  return result;
 }
 
 Future<dynamic> getAllExpenses() async {

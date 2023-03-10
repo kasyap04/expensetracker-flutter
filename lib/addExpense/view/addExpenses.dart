@@ -7,10 +7,14 @@ import '../../trackexpenses/view/appBarView.dart';
 import 'expenseFeildsView.dart';
 
 class AddExpenses extends StatefulWidget {
-  late int? monthlyPlanCatId;
+  late Map<String, dynamic>? monthlyPlanCatData;
+  late Map? editablemonthlyPlanCatData;
   // final String cardType;
   late Map? editableExpense;
-  AddExpenses({this.editableExpense, this.monthlyPlanCatId});
+  AddExpenses(
+      {this.editableExpense,
+      this.monthlyPlanCatData,
+      this.editablemonthlyPlanCatData});
   @override
   State<AddExpenses> createState() => AddExpensesState();
 }
@@ -25,6 +29,8 @@ class AddExpensesState extends State<AddExpenses> {
 
   String totalExpense = "0";
   String expenseTime = "Today";
+
+  int selectedCard = 0;
 
   String saveBtnText = "Save expense";
   int transactionType = 0;
@@ -59,6 +65,9 @@ class AddExpensesState extends State<AddExpenses> {
       expenseBgColor = const Color.fromARGB(255, 207, 207, 207);
     }
 
+    getMonthlyExpenseByTimeFlag(
+        expenseTime, widget.monthlyPlanCatData!['catId']);
+
     // getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
     //   setState(() {
     //     totalExpense = value;
@@ -66,16 +75,20 @@ class AddExpensesState extends State<AddExpenses> {
     // }).catchError((error) => print(error));
   }
 
-  void itemSelected(String value) {
-    setState(() {
-      expenseTime = value;
-    });
+  void getMonthlyExpenseByTimeFlag(String expenseTime, int catId) async {
+    getMonthlyExpenseByTimeFlagController(expenseTime, catId).then((value) {
+      setState(() {
+        widget.monthlyPlanCatData!['spend'] = value;
+      });
+    }).catchError((error) => print(error));
+  }
 
-    // getCardDetailsByTimeFlag(expenseTime, widget.cardType).then((value) {
-    //   setState(() {
-    //     totalExpense = value;
-    //   });
-    // }).catchError((error) => print(error));
+  void itemSelected(String value) {
+    expenseTime = value;
+    if (widget.monthlyPlanCatData != null) {
+      getMonthlyExpenseByTimeFlag(
+          expenseTime, widget.monthlyPlanCatData!['catId']);
+    }
   }
 
   void createSnackBar(BuildContext context, String msg) {
@@ -90,6 +103,61 @@ class AddExpensesState extends State<AddExpenses> {
       // margin: const EdgeInsets.only(bottom: 100),
     );
     scaffolMessengerKey.currentState!.showSnackBar(snackBar);
+  }
+
+  void dropdownSelected(int value) {
+    selectedCard = value;
+  }
+
+  void setMonthlyPlanExpense(BuildContext context, int catId) async {
+    try {
+      if (formKey.currentState!.validate()) {
+        double expense = double.parse(expenseController.text.trim());
+        if (widget.monthlyPlanCatData != null) {
+          Map<String, dynamic> monthlyExpense = {
+            "name": widget.monthlyPlanCatData!["name"],
+            "amount": expense,
+            "card": selectedCard == 0 ? null : selectedCard,
+            "category": widget.monthlyPlanCatData!["catId"],
+            "type": 0,
+            "monthly_plan": 1,
+            "date": DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now())
+          };
+
+          // print(monthlyExpense);
+
+          bool cardSaveStatus;
+          cardSaveStatus = await saveCardExpense(monthlyExpense);
+
+          if (widget.editablemonthlyPlanCatData == null && cardSaveStatus) {
+            // expenseController.text = "";
+            tagController.text = "";
+            categoryController.text = "";
+          }
+
+          if (cardSaveStatus) {
+            createSnackBar(
+                context,
+                (widget.editableExpense == null)
+                    ? "New expense added"
+                    : "Changes saved");
+
+            // print(widget.monthlyPlanCatData);
+
+            getMonthlyExpenseByTimeFlag(
+                expenseTime, widget.monthlyPlanCatData!['catId']);
+          } else {
+            createSnackBar(
+                context, "Could not add your expense, try again later");
+          }
+        } else {
+          createSnackBar(
+              context, "Something wend wrong! Please try again later");
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   void setCardExpense(BuildContext context) async {
@@ -143,10 +211,6 @@ class AddExpensesState extends State<AddExpenses> {
           createSnackBar(
               context, "Could not add your expense, try again later");
         }
-
-        // getCardDetailsByTimeFlag("Today", widget.cardType).then((value) {
-        //   setState(() => totalExpense = value);
-        // }).catchError((error) => print(error));
       }
     } catch (e) {
       print("ERROR => $e");
@@ -156,7 +220,6 @@ class AddExpensesState extends State<AddExpenses> {
   void transactionSelected(int typeId) {
     setState(() {
       transactionType = typeId;
-      print("type = $transactionType");
       if (typeId == 0) {
         incomeTextColor = Colors.black;
         incomBgColor = const Color.fromARGB(255, 207, 207, 207);
@@ -182,49 +245,61 @@ class AddExpensesState extends State<AddExpenses> {
           hasBackButton: true,
           prevContext: context,
         ),
-        body: Center(
-          child: ListView(
-            padding: const EdgeInsets.only(left: 10, right: 10, bottom: 80),
-            children: [
-              CardWidget(
-                menuPressed: () {},
-                // cardType: widget.cardType,
-                expense: totalExpense,
-                expenseTime: expenseTime,
-                itemSelected: (value) => itemSelected(value),
-              ),
-              Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    ExpenseView(controller: expenseController, label: "Amount"),
-                  ],
-                ),
-              )
-              // ExpenseFeild(
-              //     formKey: formKey,
-              //     expenseController: expenseController,
-              //     tagController: tagController,
-              //     categoryController: categoryController,
-              //     expenseBgColor: expenseBgColor,
-              //     expenseTextColor: expenseTextColor,
-              //     incomBgColor: incomBgColor,
-              //     incomeTextColor: incomeTextColor,
-              //     transactionType: (id) => transactionSelected(id),
-              //     callSnackbar: (msg) => createSnackBar(context, msg)),
-            ],
-          ),
+        body: ListView(
+          padding: const EdgeInsets.only(left: 10, right: 10, bottom: 80),
+          children: [
+            CardWidget(
+              monthlyPlan: widget.monthlyPlanCatData,
+              menuPressed: () {},
+              // cardType: widget.cardType,
+              expense: totalExpense,
+              expenseTime: expenseTime,
+              itemSelected: (value) => itemSelected(value),
+            ),
+            Visibility(
+                visible: widget.monthlyPlanCatData != null ? true : false,
+                child: Form(
+                  key: widget.monthlyPlanCatData != null ? formKey : null,
+                  child: Column(
+                    children: [
+                      ExpenseView(
+                          controller: expenseController, label: "Amount"),
+                      const Padding(padding: EdgeInsets.only(bottom: 30)),
+                      DropDownView(
+                        dropdownSelected: (value) => dropdownSelected(value),
+                        label: "Choose card",
+                      )
+                    ],
+                  ),
+                )),
+            // ExpenseFeild(
+            //     formKey: formKey,
+            //     expenseController: expenseController,
+            //     tagController: tagController,
+            //     categoryController: categoryController,
+            //     expenseBgColor: expenseBgColor,
+            //     expenseTextColor: expenseTextColor,
+            //     incomBgColor: incomBgColor,
+            //     incomeTextColor: incomeTextColor,
+            //     transactionType: (id) => transactionSelected(id),
+            //     callSnackbar: (msg) => createSnackBar(context, msg)),
+          ],
         ),
         bottomSheet: Container(
-          width: MediaQuery.of(context).size.width - 20,
-          margin: const EdgeInsets.only(left: 10, bottom: 10),
+          width: MediaQuery.of(context).size.width,
+          // margin: const EdgeInsets.only(left: 10, bottom: 10),
           height: 50,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(0)),
           child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                   primary: const Color.fromARGB(255, 126, 42, 122)),
               onPressed: () {
-                setCardExpense(context);
+                if (widget.monthlyPlanCatData != null) {
+                  setMonthlyPlanExpense(
+                      context, widget.monthlyPlanCatData!['catId']);
+                } else {
+                  setCardExpense(context);
+                }
               },
               child: Text(
                 saveBtnText,

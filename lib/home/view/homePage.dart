@@ -134,12 +134,12 @@ class HomePageState extends State<HomePage> {
               //     cardPressed: (value) => cardClicked(context, value),
               //     addExpensePressed: (value) =>
               //         addExpenseClicked(context, value)),
-              const Padding(padding: EdgeInsets.only(bottom: 20, top: 20)),
-              ExpenseHistoryHome(
-                deleteExpenseAction: (id) async =>
-                    await deleteExpenseAction(context, id),
-                editExpense: (expData) => editExpense(context, expData),
-              )
+              // const Padding(padding: EdgeInsets.only(bottom: 20, top: 20)),
+              // ExpenseHistoryHome(
+              //   deleteExpenseAction: (id) async =>
+              //       await deleteExpenseAction(context, id),
+              //   editExpense: (expData) => editExpense(context, expData),
+              // )
             ],
           )),
     );

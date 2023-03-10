@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
+import '../../home/controller/homePageController.dart';
 import '../../settings/model/settingsMode.dart';
+import '../../trackexpenses/controller/colors.dart';
 
 // class ExpenseFeild extends StatelessWidget {
 //   final GlobalKey formKey;
@@ -189,16 +191,13 @@ class ExpenseView extends StatelessWidget {
                 color: Colors.grey,
               ),
               enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      color: Color.fromARGB(255, 126, 42, 122)),
+                  borderSide: BorderSide(color: AppColor().primary),
                   borderRadius: BorderRadius.circular(6)),
               focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      color: Color.fromARGB(255, 126, 42, 122)),
+                  borderSide: BorderSide(color: AppColor().primary),
                   borderRadius: BorderRadius.circular(6)),
               border: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                      color: Color.fromARGB(255, 126, 42, 122)),
+                  borderSide: BorderSide(color: AppColor().primary),
                   borderRadius: BorderRadius.circular(6))),
         ),
       ],
@@ -339,5 +338,69 @@ class TransactionSelectorState extends State<TransactionSelector> {
         ),
       ),
     ));
+  }
+}
+
+// class DropDownView extends StatefulWidget {
+//   final String label;
+//   DropDownView({required this.label});
+
+//   @override
+//   State<DropDownView> createState() => DropDownViewState();
+// }
+
+class DropDownView extends StatelessWidget {
+  final String label;
+  final void Function(int value) dropdownSelected;
+  DropDownView({required this.label, required this.dropdownSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        FeildLabel(
+          label: label,
+        ),
+        FeildPadding(padding: 5),
+        FutureBuilder(
+            future: getCards(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<DropdownMenuItem> dropDownList = <DropdownMenuItem>[];
+
+                print(snapshot.data);
+                dropDownList
+                    .add(const DropdownMenuItem(child: Text(""), value: 0));
+                for (var card in snapshot.data) {
+                  dropDownList.add(DropdownMenuItem(
+                      child: Text(
+                          "${card['name'].toString().replaceFirst(card['name'][0], card['name'][0].toString().toUpperCase())} card"),
+                      value: card['id']));
+                }
+                return SizedBox(
+                  height: 58,
+                  child: DropdownButtonFormField(
+                    iconEnabledColor: AppColor().primary,
+                    isExpanded: true,
+                    items: dropDownList,
+                    onChanged: (value) => dropdownSelected(value),
+                    decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor().primary),
+                            borderRadius: BorderRadius.circular(6)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor().primary),
+                            borderRadius: BorderRadius.circular(6)),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColor().primary),
+                            borderRadius: BorderRadius.circular(6))),
+                  ),
+                );
+              } else {
+                return CircularProgressIndicator();
+              }
+            })
+      ],
+    );
   }
 }

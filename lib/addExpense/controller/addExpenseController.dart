@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import '../model/addExpenseMode.dart';
 
-const String FLAG = "expenses";
-
-Future<dynamic> getFullCardDetails() async {
-  var pref = await SharedPreferences.getInstance();
-  var cardData = jsonDecode(pref.getString(FLAG).toString());
-  return cardData;
-}
+// Future<dynamic> getFullCardDetails() async {
+//   var pref = await SharedPreferences.getInstance();
+//   var cardData = jsonDecode(pref.getString(FLAG).toString());
+//   return cardData;
+// }
 
 DateTime toDateTime(String date) => DateTime.parse(date);
 
-Future<String> getCardDetailsByTimeFlag(String time, String cartType) async {
+List getStartEndDateFromTimeFlag(String time) {
   var start_date, end_date;
 
   if (time == "Today") {
@@ -39,7 +36,22 @@ Future<String> getCardDetailsByTimeFlag(String time, String cartType) async {
     end_date = "${end_date.substring(0, 10)} 23:59:59";
   }
 
-  final expenseSum = await getExpenseByTime(cartType, start_date, end_date);
+  return [start_date, end_date];
+}
+
+// Future<String> getCardDetailsByTimeFlag(String time, String cartType) async {
+//   var dateStartEnd = getStartEndDateFromTimeFlag(time);
+//   final expenseSum =
+//       await getExpenseByTime(cartType, dateStartEnd[0], dateStartEnd[1]);
+
+//   return expenseSum.toString();
+// }
+
+Future<String> getMonthlyExpenseByTimeFlagController(
+    String time, int catId) async {
+  var dateStartEnd = getStartEndDateFromTimeFlag(time);
+  final expenseSum =
+      await getMonthlyExpenseByTime(dateStartEnd[0], dateStartEnd[1], catId);
 
   return expenseSum.toString();
 }

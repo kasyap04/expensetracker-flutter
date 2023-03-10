@@ -5,6 +5,7 @@ import '../../addExpense/view/addExpenses.dart';
 import '../../trackexpenses/controller/colors.dart';
 import '../../trackexpenses/view/appBarView.dart';
 import '../controller/monthlyPlanController.dart';
+import '../view/planMonthView.dart';
 
 class DisplayMonthlyPlan extends StatefulWidget {
   final String action;
@@ -14,6 +15,8 @@ class DisplayMonthlyPlan extends StatefulWidget {
 }
 
 class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
+  final navigatorKey = GlobalKey<NavigatorState>();
+
   dynamic activeMonthlyPlan;
   dynamic activePlanCats;
   int selectedPlanId = 0;
@@ -36,30 +39,43 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
     });
   }
 
-  void categoryPressed(int catId) async {
-    setState(() {
-      if (widget.action == "add") {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => AddExpenses(
-                      monthlyPlanCatId: catId,
-                    )));
-      } else {
+  void categoryPressed(
+      int catId, Map<String, dynamic> monthlyPlanCatData) async {
+    if (widget.action == "add") {
+      await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => AddExpenses(
+                    monthlyPlanCatData: monthlyPlanCatData,
+                  )));
+
+      setState(() {});
+    } else {
+      setState(() {
         if (selectedCats.contains(catId)) {
           selectedCats.remove(catId);
         } else {
           selectedCats.add(catId);
         }
-      }
-    });
+      });
+    }
+  }
+
+  void createMonthlyPlanAction(BuildContext context) async {
+    final NavigatorState? navigator = navigatorKey.currentState;
+    var getBack = await navigator!
+        .push(MaterialPageRoute(builder: (context) => PlanMonth()));
+
+    if (getBack == null) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        // navigatorKey: navigatorKey,
+        navigatorKey: navigatorKey,
         home: Scaffold(
             appBar: AppBarView(
               prevContext: context,
@@ -74,9 +90,7 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
                     activePlanCats = snapshot.data?[1];
                   }
 
-                  if (selectedCats.isEmpty &&
-                      widget.action == "view" &&
-                      snapshot.data.isNotEmpty) {
+                  if (selectedCats.isEmpty && snapshot.data.isNotEmpty) {
                     for (var cat in activePlanCats) {
                       if (!selectedCats.contains(cat['id'])) {
                         selectedCats.add(cat['id']);
@@ -85,26 +99,40 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
                   }
 
                   snapshot.data?.clear();
-                  return ListView(
-                    padding: const EdgeInsets.all(10),
-                    children: [
-                      Text(
-                        pageHeader,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      PlanListView(
-                        planSelected: (int id) => showExpansesByPlan(id),
-                        planList: activeMonthlyPlan,
-                      ),
-                      const Padding(padding: EdgeInsets.only(bottom: 40)),
-                      ExpenseCategories(
-                        selectedCats: selectedCats,
-                        selectedPlan: activePlanCats,
-                        categoryPressed: (int catId) => categoryPressed(catId),
-                      ),
-                    ],
-                  );
+
+                  if (snapshot.data.isEmpty) {
+                    return NoMonthlyPlanView(
+                      createMonthlyPlanButon: () =>
+                          createMonthlyPlanAction(context),
+                    );
+                  } else {
+                    return ListView(
+                      padding: const EdgeInsets.all(10),
+                      children: [
+                        Text(
+                          pageHeader,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        PlanListView(
+                          planSelected: (int id) => showExpansesByPlan(id),
+                          planList: activeMonthlyPlan,
+                        ),
+                        const Padding(padding: EdgeInsets.only(bottom: 40)),
+                        ExpenseCategories(
+                          selectedCats: selectedCats,
+                          selectedPlan: activePlanCats,
+                          categoryPressed:
+                              (int catId, Map<String, dynamic> catData) =>
+                                  categoryPressed(catId, catData),
+                        ),
+                        const Padding(padding: EdgeInsets.only(bottom: 40)),
+                        Visibility(
+                            visible: widget.action == "view" ? true : false,
+                            child: ExpenseHistory()),
+                      ],
+                    );
+                  }
                 } else {
                   return CircularProgressIndicator();
                 }
@@ -113,10 +141,27 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
   }
 }
 
+class ExpenseHistory extends StatefulWidget {
+  @override
+  State<ExpenseHistory> createState() => ExpenseHistoryState();
+}
+
+class ExpenseHistoryState extends State<ExpenseHistory> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text("Expense history",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+}
+
 class ExpenseCategories extends StatefulWidget {
   late dynamic selectedPlan;
   late List<int> selectedCats;
-  late void Function(int catId) categoryPressed;
+  late void Function(int catId, Map<String, dynamic> catData) categoryPressed;
   ExpenseCategories(
       {required this.selectedPlan,
       required this.selectedCats,
@@ -139,7 +184,8 @@ class ExpenseCategoriesState extends State<ExpenseCategories> {
         spend: plan_data['spend_amount'].toString(),
         total: plan_data['estimat_amount'].toString(),
         name: plan_data['expense_name'],
-        expensePressed: (int id) => widget.categoryPressed(id),
+        expensePressed: (int id, Map<String, dynamic> catData) =>
+            widget.categoryPressed(id, catData),
         planDataId: plan_data['id'],
       ));
     }
@@ -159,7 +205,7 @@ class ExpenseCategoriesChild extends StatelessWidget {
   final bool selected;
   final String spend, total, name;
   final int planDataId;
-  final void Function(int id) expensePressed;
+  final void Function(int id, Map<String, dynamic> catData) expensePressed;
   ExpenseCategoriesChild(
       {required this.selected,
       required this.spend,
@@ -176,7 +222,12 @@ class ExpenseCategoriesChild extends StatelessWidget {
               selected == true ? AppColor().secondary : AppColor().mildPrimary,
           borderRadius: BorderRadius.circular(8)),
       child: InkWell(
-        onTap: () => expensePressed(planDataId),
+        onTap: () => expensePressed(planDataId, {
+          "spend": spend,
+          "total": total,
+          "name": name,
+          "catId": planDataId
+        }),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -202,7 +253,7 @@ class ExpenseCategoriesChild extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 13,
                         color: selected == true
-                            ? AppColor().white
+                            ? AppColor().rupeeOnPrimaryColor
                             : AppColor().black)),
               ],
             ),
@@ -341,4 +392,27 @@ class PlanListChild extends StatelessWidget {
           ],
         ),
       ));
+}
+
+class NoMonthlyPlanView extends StatelessWidget {
+  final void Function() createMonthlyPlanButon;
+  NoMonthlyPlanView({required this.createMonthlyPlanButon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("You don't have a monthly plan",
+              style: TextStyle(color: AppColor().lightgrey)),
+          const Padding(padding: EdgeInsets.only(bottom: 10)),
+          ElevatedButton(
+            onPressed: createMonthlyPlanButon,
+            child: const Text("Create monthly plan"),
+          )
+        ],
+      ),
+    );
+  }
 }
