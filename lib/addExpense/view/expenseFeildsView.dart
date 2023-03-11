@@ -351,8 +351,10 @@ class TransactionSelectorState extends State<TransactionSelector> {
 
 class DropDownView extends StatelessWidget {
   final String label;
+  late int? cardId;
   final void Function(int value) dropdownSelected;
-  DropDownView({required this.label, required this.dropdownSelected});
+  DropDownView(
+      {required this.label, required this.dropdownSelected, this.cardId});
 
   @override
   Widget build(BuildContext context) {
@@ -368,7 +370,7 @@ class DropDownView extends StatelessWidget {
               if (snapshot.hasData) {
                 List<DropdownMenuItem> dropDownList = <DropdownMenuItem>[];
 
-                print(snapshot.data);
+                // print(snapshot.data);
                 dropDownList
                     .add(const DropdownMenuItem(child: Text(""), value: 0));
                 for (var card in snapshot.data) {
@@ -382,6 +384,7 @@ class DropDownView extends StatelessWidget {
                   child: DropdownButtonFormField(
                     iconEnabledColor: AppColor().primary,
                     isExpanded: true,
+                    value: cardId ?? 0,
                     items: dropDownList,
                     onChanged: (value) => dropdownSelected(value),
                     decoration: InputDecoration(

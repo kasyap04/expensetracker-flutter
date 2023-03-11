@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../addExpense/model/addExpenseMode.dart';
 import '../../addExpense/view/addExpenses.dart';
 import '../../trackexpenses/controller/colors.dart';
 import '../../trackexpenses/view/appBarView.dart';
@@ -17,8 +18,6 @@ class DisplayMonthlyPlan extends StatefulWidget {
 }
 
 class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
-  final navigatorKey = GlobalKey<NavigatorState>();
-
   dynamic activeMonthlyPlan;
   dynamic activePlanCats;
   int selectedPlanId = 0;
@@ -64,9 +63,8 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
   }
 
   void createMonthlyPlanAction(BuildContext context) async {
-    final NavigatorState? navigator = navigatorKey.currentState;
-    var getBack = await navigator!
-        .push(MaterialPageRoute(builder: (context) => PlanMonth()));
+    var getBack = await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => PlanMonth()));
 
     if (getBack == null) {
       setState(() {});
@@ -84,11 +82,72 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
     }
   }
 
+  Future<bool> onDismissExpense(BuildContext context,
+      DismissDirection direction, Map expData, int catId) async {
+    bool status = false;
+    if (direction == DismissDirection.endToStart) {
+      // status = false;
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, false);
+                      },
+                      child: Text("Not now",
+                          style: TextStyle(color: AppColor().lightgrey))),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, true);
+                        // await widget.deleteExpenseAction(expData['id']);
+                      },
+                      child: Text(
+                        "Yes, delete",
+                        style: TextStyle(color: AppColor().primary),
+                      ))
+                ],
+                title: const Text("Delete?", textAlign: TextAlign.center),
+                content: const Text(
+                  "Are you sure you want to delete this?",
+                  textAlign: TextAlign.center,
+                ),
+              )).then((value) async {
+        status = value;
+        if (value) {
+          status = await deleteExpense(expData['id']);
+          setState(() {});
+        }
+      });
+    } else {
+      Map<String, dynamic> monthlyPlan = {};
+      for (var cat in activePlanCats) {
+        if (cat['id'] == catId) {
+          monthlyPlan['spend'] = cat['spend_amount'].toString();
+          monthlyPlan['total'] = cat['estimat_amount'].toString();
+          monthlyPlan['name'] = cat['expense_name'];
+          monthlyPlan['catId'] = catId;
+        }
+      }
+      // print(monthlyPlan);
+
+      await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => AddExpenses(
+                    editablemonthlyPlanCatData: expData,
+                    monthlyPlanCatData: monthlyPlan,
+                  )));
+      status = false;
+      setState(() {});
+    }
+    return status;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        navigatorKey: navigatorKey,
         home: Scaffold(
             appBar: AppBarView(
               prevContext: context,
@@ -150,7 +209,12 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
                       const Padding(padding: EdgeInsets.only(bottom: 40)),
                       Visibility(
                           visible: widget.action == "view" ? true : false,
-                          child: ExpenseHistory(selectedCat: selectedCats)),
+                          child: ExpenseHistory(
+                            selectedCat: selectedCats,
+                            expenseDismiss: (direction, expData, catId) async =>
+                                await onDismissExpense(
+                                    context, direction, expData, catId),
+                          )),
                     ],
                   );
                   // }
@@ -164,7 +228,9 @@ class DisplayMonthlyPlanState extends State<DisplayMonthlyPlan> {
 
 class ExpenseHistory extends StatefulWidget {
   final List selectedCat;
-  ExpenseHistory({required this.selectedCat});
+  final Future<bool> Function(
+      DismissDirection direction, Map expData, int catId) expenseDismiss;
+  ExpenseHistory({required this.selectedCat, required this.expenseDismiss});
   @override
   State<ExpenseHistory> createState() => ExpenseHistoryState();
 }
@@ -182,9 +248,7 @@ class ExpenseHistoryState extends State<ExpenseHistory> {
             future: getMonthlyExpenseList(widget.selectedCat),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                print(snapshot.data);
-
-                // ExpenseListView()
+                // print(snapshot.data);
 
                 if (snapshot.data.isNotEmpty) {
                   List<Widget> listChildren = <Widget>[];
@@ -197,22 +261,37 @@ class ExpenseHistoryState extends State<ExpenseHistory> {
                     String date = exp['date'].substring(0, 11);
 
                     listChildren.add(ExpenseListView(
+                      id: exp['id'],
                       amount: exp['amount'].toString(),
                       category: exp['name'],
+                      card: exp['card'] ?? 0,
+                      cardName: exp['card_name'],
                       date: DateFormat.yMMMd()
                           .format(DateFormat("yyy-MM-DD").parse(date)),
                       time: time,
+                      expenseDismiss: (direction, expData) async => await widget
+                          .expenseDismiss(direction, expData, exp['catId']),
                     ));
                   }
 
-                  return ListView(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    children: listChildren,
+                  return Container(
+                    decoration: BoxDecoration(
+                        color: AppColor().mildPrimary,
+                        borderRadius: BorderRadius.circular(8)),
+                    child: ListView(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      shrinkWrap: true,
+                      physics: const BouncingScrollPhysics(),
+                      children: listChildren,
+                    ),
                   );
                 } else {
-                  return Text("No epxneses");
+                  return Center(
+                    child: Text(
+                      "No epxneses to show",
+                      style: TextStyle(color: AppColor().lightgrey),
+                    ),
+                  );
                 }
               } else {
                 return CircularProgressIndicator();
@@ -256,6 +335,7 @@ class ExpenseCategoriesState extends State<ExpenseCategories> {
     }
 
     return GridView.count(
+      physics: NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       childAspectRatio: (1 / .45),
       shrinkWrap: true,
@@ -525,50 +605,105 @@ class MonthlyPlanPopUp extends StatelessWidget {
 }
 
 class ExpenseListView extends StatelessWidget {
+  final int id;
   final String category;
   final String amount;
   final String date;
   final String time;
+  final int card;
+  final String cardName;
+  final Future<bool> Function(DismissDirection direction, Map expData)
+      expenseDismiss;
   ExpenseListView(
       {required this.category,
+      required this.id,
       required this.amount,
       required this.date,
+      required this.card,
+      required this.cardName,
+      required this.expenseDismiss,
       required this.time});
   @override
   Widget build(BuildContext context) {
-    return Dismissible(
-      key: UniqueKey(),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.only(top: 10, bottom: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "$category",
-              style: const TextStyle(fontSize: 17),
-            ),
-            Row(
-              children: [
-                const Icon(
-                  Icons.currency_rupee,
-                  size: 15,
+    Map<String, dynamic> expData = {'id': id, 'amount': amount, 'card': card};
+    List<Widget> firstColum = <Widget>[
+      Text(
+        "$category",
+        style: const TextStyle(fontSize: 17),
+      )
+    ];
+
+    if (cardName.isNotEmpty) {
+      firstColum.add(const Padding(padding: EdgeInsets.only(bottom: 2)));
+      firstColum.add(Text(
+        "${cardName[0].toUpperCase()}${cardName.substring(1).toLowerCase()} card",
+        style: TextStyle(color: AppColor().lightgrey, fontSize: 12),
+      ));
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Dismissible(
+        key: UniqueKey(),
+        confirmDismiss: (direction) async =>
+            await expenseDismiss(direction, expData),
+        secondaryBackground: const ColoredBox(
+            color: Colors.redAccent,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: EdgeInsets.all(15),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.white,
                 ),
-                Text(amount, style: const TextStyle(fontSize: 17))
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(date),
-                const Padding(padding: EdgeInsets.only(bottom: 2)),
-                Text(
-                  time,
-                  style: const TextStyle(fontSize: 12),
-                )
-              ],
-            )
-          ],
+              ),
+            )),
+        background: ColoredBox(
+            color: AppColor().secondary,
+            child: const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.all(15),
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ),
+              ),
+            )),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 7, top: 7),
+          padding: const EdgeInsets.only(top: 10, bottom: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: firstColum),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Icon(
+                    Icons.currency_rupee,
+                    size: 15,
+                  ),
+                  Text(amount, style: const TextStyle(fontSize: 17))
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(date),
+                  const Padding(padding: EdgeInsets.only(bottom: 2)),
+                  Text(
+                    time,
+                    style: const TextStyle(fontSize: 12),
+                  )
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

@@ -52,6 +52,12 @@ class AddExpensesState extends State<AddExpenses> {
       saveBtnText = "Save changes";
     }
 
+    if (widget.editablemonthlyPlanCatData != null) {
+      expenseController.text = widget.editablemonthlyPlanCatData?['amount'];
+      selectedCard = widget.editablemonthlyPlanCatData?['card'];
+      saveBtnText = "Save changes";
+    }
+
     if (transactionType == 0) {
       incomeTextColor = Colors.black;
       incomBgColor = const Color.fromARGB(255, 207, 207, 207);
@@ -127,12 +133,18 @@ class AddExpensesState extends State<AddExpenses> {
           // print(monthlyExpense);
 
           bool cardSaveStatus;
-          cardSaveStatus = await saveCardExpense(monthlyExpense);
+          if (widget.editablemonthlyPlanCatData != null) {
+            monthlyExpense['id'] = widget.editablemonthlyPlanCatData!['id'];
+            cardSaveStatus = await editExpende(monthlyExpense);
+          } else {
+            cardSaveStatus = await saveCardExpense(monthlyExpense);
+          }
 
           if (widget.editablemonthlyPlanCatData == null && cardSaveStatus) {
-            // expenseController.text = "";
+            expenseController.text = "";
             tagController.text = "";
             categoryController.text = "";
+            selectedCard = 0;
           }
 
           if (cardSaveStatus) {
@@ -268,6 +280,7 @@ class AddExpensesState extends State<AddExpenses> {
                       DropDownView(
                         dropdownSelected: (value) => dropdownSelected(value),
                         label: "Choose card",
+                        cardId: selectedCard,
                       )
                     ],
                   ),

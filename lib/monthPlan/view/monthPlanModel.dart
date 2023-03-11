@@ -82,10 +82,26 @@ Future<dynamic> getPlanData(int id) async {
 Future<dynamic> getExpenseList(List expList) async {
   try {
     final db = await Sql.db();
+    dynamic result = [];
     var res = await db.query('expense',
         where: "monthly_plan = ? AND category IN (${expList.join(',')})",
         whereArgs: [1]);
-    return res;
+
+    for (var exp in res) {
+      List card = await db.query('card',
+          columns: ['name'], where: "id = ?", whereArgs: [exp['card']]);
+      result.add({
+        'id': exp['id'],
+        'name': exp['name'],
+        'amount': exp['amount'],
+        'card': exp['card'],
+        'card_name': card.isEmpty ? "" : card[0]['name'],
+        'date': exp['date'],
+        'catId': exp['category']
+      });
+    }
+
+    return result;
   } catch (e) {
     print(e);
   }
